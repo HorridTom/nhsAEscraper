@@ -41,9 +41,18 @@ getAEdata_urls_monthly <- function() {
 }
 
 
+#' getAEdata_page_urls_monthly
+#'
+#' @param index_url the url of the page to scrape data files from
+#'
+#' @return character vector of the urls for NHS England A&E data *.xls files
+#' from one of the monthly data index pages
+#'
+#' @export
+#'
+#' @examples
+#' getAEdata_page_urls_monthly('https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2017-18/')
 getAEdata_page_urls_monthly <- function(index_url) {
-  #This function returns the urls for NHS England A&E data *.xls files from one
-  #of the monthly data index pages
 
   #Get the html from the index website
   con <- url(index_url, "r")
