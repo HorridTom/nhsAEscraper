@@ -160,6 +160,12 @@ Source: CRAN
 Version: 0.2.1
 Hash: 88926ad9c43581fd0822a37c8ed09f05
 
+Package: lubridate
+Source: CRAN
+Version: 1.7.3
+Hash: c1e1a6dacb69a6ff11275ae2796e17d1
+Requires: Rcpp, stringr
+
 Package: magrittr
 Source: CRAN
 Version: 1.5
@@ -321,3 +327,8 @@ Package: yaml
 Source: CRAN
 Version: 2.1.17
 Hash: db4c0c053bdd419d231665e72237a8a9
+
+Package: zoo
+Source: CRAN
+Version: 1.8-1
+Hash: 4662280a4dad0f93d6ecfdf797fc1cf2
