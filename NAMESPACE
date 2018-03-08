@@ -2,3 +2,5 @@
 
 export(getAEdata_page_urls_monthly)
 export(getAEdata_urls_monthly)
+export(tidy_AE_data)
+importFrom(magrittr,"%>%")

@@ -97,6 +97,8 @@ load_AE_files <- function(directory = 'data-raw/sitreps/', pkg = 'readxl') {
   if (pkg == 'readxl') {
     dataList <- lapply(fileNames, function(x) {readxl::read_excel(x, sheet = 1, col_names = FALSE)})
   } else if (pkg == 'gdata') {
+    # If can get this to work with readxl on Windows and Mac, can remove this bit
+    # and associated Import.
     dataList <- lapply(fileNames, function(x) {
       y <- gdata::read.xls(x, as.is = TRUE)
       colnames(y) <- paste('X__',c(1:25),sep='')
@@ -108,14 +110,24 @@ load_AE_files <- function(directory = 'data-raw/sitreps/', pkg = 'readxl') {
 }
 
 
+#' tidy_AE_data
+#'
+#' @param raw_data dataframe containing a NHS England A&E Monthly report
+#' with a standardised set of columns
+#'
+#' @return the same data as raw_data, as a rectangular table with header removed,
+#' new column names, and correct numerical data types for numerical columns
+#' @importFrom magrittr %>%
+#' @export
+#'
 tidy_AE_data <- function(raw_data) {
 
   data_date <- get_date(raw_data)
 
-  neat_data <- raw_data %>% filter(grepl("^[A-Z0-9]+$",X__1))
+  neat_data <- raw_data %>% dplyr::filter(grepl("^[A-Z0-9]+$",X__1))
 
-  neat_data <- neat_data %>% select(X__1:X__21) %>%
-    rename(Prov_Code = X__1,
+  neat_data <- neat_data %>% dplyr::select(X__1:X__21) %>%
+    dplyr::rename(Prov_Code = X__1,
                                     Region = X__2,
                                     Prov_Name = X__3,
                                     Att_Typ1 = X__4,
@@ -137,11 +149,14 @@ tidy_AE_data <- function(raw_data) {
                                     E_Adm_4hBr_D = X__20,
                                     E_Adm_12hBr_D = X__21)
 
-  neat_data <- neat_data %>% mutate_at(vars(starts_with("Att_")), funs(as.numeric)) %>%
-    mutate_at(vars(starts_with("Perf_")), funs(as.numeric)) %>%
-    mutate_at(vars(starts_with("E_Adm_")), funs(as.numeric))
+  # At present this mutate_at call generates a 'NAs introduced by coercion' warning
+  # suspect this is due to Excel-generated N/A character strings - fix by first explicitly
+  # replacing these with NA values.
+  neat_data <- neat_data %>% dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), dplyr::funs(as.numeric)) %>%
+    dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), dplyr::funs(as.numeric)) %>%
+    dplyr::mutate_at(dplyr::vars(dplyr::starts_with("E_Adm_")), dplyr::funs(as.numeric))
 
-  neat_data <- neat_data %>% add_column(Month_Start = data_date, .after = 3)
+  neat_data <- neat_data %>% tibble::add_column(Month_Start = data_date, .after = 3)
 
   neat_data
 }
@@ -151,12 +166,12 @@ check_format <- function(raw_data, verbose = FALSE) {
 
   format_status <- logical()
 
-  format_status[1] <- nrow(raw_data %>% filter(X__1 == "Code")) == 1
-  format_status[2] <- nrow(raw_data %>% filter(X__2 == "Region")) == 1
-  format_status[3] <- nrow(raw_data %>% filter(X__3 == "Name")) == 1
-  format_status[4] <- nrow(raw_data %>% filter(X__4 == "A&E attendances")) == 1
-  format_status[5] <- nrow(raw_data %>% filter(grepl("A&E attendances > 4 hours from arrival to admission",X__8)|grepl("A&E attendances greater than 4 hours from arrival to admission",X__8))) == 1
-  format_status[6] <- nrow(raw_data %>% filter(X__14 == "Emergency Admissions")) == 1
+  format_status[1] <- nrow(raw_data %>% dplyr::filter(X__1 == "Code")) == 1
+  format_status[2] <- nrow(raw_data %>% dplyr::filter(X__2 == "Region")) == 1
+  format_status[3] <- nrow(raw_data %>% dplyr::filter(X__3 == "Name")) == 1
+  format_status[4] <- nrow(raw_data %>% dplyr::filter(X__4 == "A&E attendances")) == 1
+  format_status[5] <- nrow(raw_data %>% dplyr::filter(grepl("A&E attendances > 4 hours from arrival to admission",X__8)|grepl("A&E attendances greater than 4 hours from arrival to admission",X__8))) == 1
+  format_status[6] <- nrow(raw_data %>% dplyr::filter(X__14 == "Emergency Admissions")) == 1
 
 
   if (verbose) {
@@ -169,8 +184,8 @@ check_format <- function(raw_data, verbose = FALSE) {
 
 get_date <- function(raw_data) {
   #Find the cell specifying the period and extract the text
-  date_chr <- raw_data %>% filter(X__1 == "Period:") %>%
-    pull(X__2)
+  date_chr <- raw_data %>% dplyr::filter(X__1 == "Period:") %>%
+    dplyr::pull(X__2)
   lubridate::myd(paste(date_chr,'1st',sep=' '), tz = "Europe/London")
 
 }
@@ -208,7 +223,7 @@ make_p4h_from_sitreps <- function(AE_data) {
   df$AEA_Department_Type <- NA
 
   # Rename
-  df <- df %>% rename(Activity = value)
+  df <- df %>% dplyr::rename(Activity = value)
 
   # Remove redundant key column
   df$key <- NULL
@@ -223,7 +238,7 @@ make_p4h_from_sitreps <- function(AE_data) {
 delete_extra_columns <- function(df) {
   format_type_x <- nrow(df %>% dplyr::filter(grepl("A&E attendances less than 4 hours from arrival to admission",X__8))) == 1
   if(!format_type_x) return(df)
-  df <- df %>% select(-c(X__8,X__9,X__10,X__11))
+  df <- df %>% dplyr::select(-c(X__8,X__9,X__10,X__11))
   colnames(df) <- paste('X__',c(1:ncol(df)),sep='')
   df
 }
