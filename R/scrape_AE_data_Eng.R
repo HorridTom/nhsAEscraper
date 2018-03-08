@@ -221,7 +221,7 @@ make_p4h_from_sitreps <- function(AE_data) {
 
 
 delete_extra_columns <- function(df) {
-  format_type_x <- nrow(df %>% filter(grepl("A&E attendances less than 4 hours from arrival to admission",X__8))) == 1
+  format_type_x <- nrow(df %>% dplyr::filter(grepl("A&E attendances less than 4 hours from arrival to admission",X__8))) == 1
   if(!format_type_x) return(df)
   df <- df %>% select(-c(X__8,X__9,X__10,X__11))
   colnames(df) <- paste('X__',c(1:ncol(df)),sep='')
