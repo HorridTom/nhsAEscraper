@@ -7,3 +7,4 @@ packrat/lib*/
 # Data files
 data-raw/
 data-out/
+tests/testthat/test-data/
