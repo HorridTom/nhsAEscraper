@@ -104,6 +104,11 @@ Source: CRAN
 Version: 1.4
 Hash: 91d7807331a4a37ef8376fb073960ee4
 
+Package: compare
+Source: CRAN
+Version: 0.2-6
+Hash: b9aea3450a31bce297fb0a45321002ab
+
 Package: covr
 Source: CRAN
 Version: 3.0.1
