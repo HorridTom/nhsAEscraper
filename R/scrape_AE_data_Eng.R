@@ -89,24 +89,20 @@ download_AE_files <- function(file_urls) {
 }
 
 
-load_AE_files <- function(directory = 'data-raw/sitreps/', pkg = 'readxl') {
+#' load_AE_files
+#'
+#' @param directory path of the directory to load files from
+#'
+#' @return a list of data frames containing data loaded from files in directory
+#' whose name is of the form '\*AE-by-provider\*.xls'
+#' @export
+#'
+load_AE_files <- function(directory = 'data-raw/sitreps/') {
 
   fileNames <- Sys.glob(paste(directory,'*AE-by-provider*.xls',sep=''))
-
   dataList <- NULL
-  if (pkg == 'readxl') {
-    dataList <- lapply(fileNames, function(x) {readxl::read_excel(x, sheet = 1, col_names = FALSE)})
-  } else if (pkg == 'gdata') {
-    # If can get this to work with readxl on Windows and Mac, can remove this bit
-    # and associated Import.
-    dataList <- lapply(fileNames, function(x) {
-      y <- gdata::read.xls(x, as.is = TRUE)
-      colnames(y) <- paste('X__',c(1:25),sep='')
-      y
-    })
-  }
-
-    dataList
+  dataList <- lapply(fileNames, function(x) {readxl::read_excel(x, sheet = 1, col_names = FALSE)})
+  dataList
 }
 
 
@@ -162,6 +158,17 @@ tidy_AE_data <- function(raw_data) {
 }
 
 
+#' check_format
+#'
+#' @param raw_data a data frame containing A&E provider data
+#' for one month, from the NHS England website
+#' @param verbose control level of detail returned
+#'
+#' @return boolean indicating whether data frame is in correct format
+#' for analysis. Length 1 if verbose = FALSE, length 6 if not - in this case
+#' each element pertains to a specific column of raw_data that is checked.
+#' @export
+#'
 check_format <- function(raw_data, verbose = FALSE) {
 
   format_status <- logical()
@@ -182,6 +189,14 @@ check_format <- function(raw_data, verbose = FALSE) {
 }
 
 
+#' get_date
+#'
+#' @param raw_data a data frame containing A&E provider data
+#' for one month, from the NHS England website
+#'
+#' @return the period (month) that this data pertains to
+#' @export
+#'
 get_date <- function(raw_data) {
   #Find the cell specifying the period and extract the text
   date_chr <- raw_data %>% dplyr::filter(X__1 == "Period:") %>%
@@ -191,50 +206,14 @@ get_date <- function(raw_data) {
 }
 
 
-make_new_variables <- function(AE_data) {
-
-  AE_data <- AE_data %>% mutate(Att_Typ1_NotBr = Att_Typ1 - Att_Typ1_Br,
-                                Att_Typ2_NotBr = Att_Typ2 - Att_Typ2_Br,
-                                Att_Typ3_NotBr = Att_Typ3 - Att_Typ3_Br,
-                                Att_All_NotBr = Att_All - Att_All_Br,
-                                E_Adm_Not4hBr_D = E_Adm_All_ED - E_Adm_4hBr_D)
-
-  AE_data
-
-}
-
-
-make_p4h_from_sitreps <- function(AE_data) {
-
-  # Add additional columns to make transformation simpler
-  AE_data <- make_new_variables(AE_data)
-
-  # Select only the columns needed for the combinations of flag variables
-  AE_data <- AE_data %>% select(Prov_Code, Prov_Name, Region, Month_Start,
-                           Att_All_NotBr, Att_All_Br, E_Adm_Not4hBr_D, E_Adm_4hBr_D)
-
-  # Now gather all but org info and month
-  df <- AE_data %>% gather(key, value, -Prov_Code, -Prov_Name, -Region, -Month_Start)
-
-  # Create flag columns
-  df$Admitted <- grepl('E_Adm*', df$key)
-  df$Greater_4h <- grepl('*_Br*|*_4hBr_*', df$key)
-  df$Greater_12h <- NA
-  df$AEA_Department_Type <- NA
-
-  # Rename
-  df <- df %>% dplyr::rename(Activity = value)
-
-  # Remove redundant key column
-  df$key <- NULL
-
-  # Convert to date
-  df$Month_Start <- as.Date(df$Month_Start)
-
-  df
-}
-
-
+#' delete_extra_columns
+#'
+#' @param df a data frame containing A&E provider data
+#' for one month, from the NHS England website
+#'
+#' @return df with superfluous columns removed
+#' @export
+#'
 delete_extra_columns <- function(df) {
   format_type_x <- nrow(df %>% dplyr::filter(grepl("A&E attendances less than 4 hours from arrival to admission",X__8))) == 1
   if(!format_type_x) return(df)
