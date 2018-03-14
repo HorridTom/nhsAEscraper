@@ -24,3 +24,13 @@ test_that("Pick up incorrect formats",{
   expect_equal(check_format(rawDataList[[2]]), FALSE, info = 'invalid format detected correctly')
   expect_equal(check_format(rawDataList_conv[[2]]), TRUE, info = 'valid format (post-column-correction) detected correctly')
 })
+
+test_that("Can get period date for data file",{
+  period_dates <- lapply(rawDataList_conv, get_date)
+
+  date_aug15 <- lubridate::ymd_hm('2015-08-01 00:00', tz = "Europe/London")
+  date_jan18 <- lubridate::ymd_hm('2018-01-01 00:00', tz = "Europe/London")
+
+  expect_equal(period_dates[[1]], date_aug15, info = 'August 2015 date correctly extracted')
+  expect_equal(period_dates[[2]], date_jan18, info = 'January 2015 date correctly extracted')
+})
