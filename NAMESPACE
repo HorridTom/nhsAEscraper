@@ -2,6 +2,7 @@
 
 export(check_format)
 export(delete_extra_columns)
+export(getAE_data)
 export(getAEdata_page_urls_monthly)
 export(getAEdata_urls_monthly)
 export(get_date)

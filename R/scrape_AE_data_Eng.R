@@ -1,10 +1,20 @@
-getAE_data <- function(update_data = TRUE) {
+#' getAE_data
+#'
+#' @param update_data whether to download files afresh from NHS England website (TRUE)
+#' or use existing downloaded files (FALSE)
+#' @param directory directory to find existing downloaded files, and to save new downloads
+#'
+#' @return A data frame containing all the monthly A&E data from the NHS England website.
+#' @export
+#'
+getAE_data <- function(update_data = TRUE, directory = 'data-raw/sitreps/') {
 
   if(update_data) {
     urls <- getAEdata_urls_monthly()
+    # TODO: Pass directory in here
     download_AE_files(urls)
   }
-  rawDataList <- load_AE_files()
+  rawDataList <- load_AE_files(directory = directory)
 
   rawDataList <- lapply(rawDataList, delete_extra_columns)
 
