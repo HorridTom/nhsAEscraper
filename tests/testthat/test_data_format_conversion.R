@@ -32,5 +32,28 @@ test_that("Can get period date for data file",{
   date_jan18 <- lubridate::ymd_hm('2018-01-01 00:00', tz = "Europe/London")
 
   expect_equal(period_dates[[1]], date_aug15, info = 'August 2015 date correctly extracted')
-  expect_equal(period_dates[[2]], date_jan18, info = 'January 2015 date correctly extracted')
+  expect_equal(period_dates[[2]], date_jan18, info = 'January 2018 date correctly extracted')
+})
+
+test_that("Data file processed correctly into rectangualar data frames",{
+  neatDataList <- lapply(rawDataList_conv, tidy_AE_data)
+
+  load('test-data/neat-colnames.rda')
+
+  expect_equal(colnames(neatDataList[[1]]), neat_colnames,
+               info = 'August 2015 column names correct post processing')
+  expect_equal(colnames(neatDataList[[2]]), neat_colnames,
+               info = 'January 2018 column names correct post processing')
+  expect_is(neatDataList[[1]][[2]], 'character')
+  expect_is(neatDataList[[2]][[2]], 'character')
+  expect_match(neatDataList[[1]][[2]], 'Commissioning Region', all = TRUE,
+               info = 'Second column is commissioning region - August 2015')
+  expect_match(neatDataList[[2]][[2]], 'Commissioning Region', all = TRUE,
+               info = 'Second column is commissioning region - January 2018')
+  expect_equal(lubridate::is.POSIXct(neatDataList[[1]][[4]]), TRUE)
+  expect_equal(lubridate::is.POSIXct(neatDataList[[2]][[4]]), TRUE)
+  expect_is(neatDataList[[1]][[5]], 'numeric')
+  expect_is(neatDataList[[2]][[5]], 'numeric')
+
+
 })
