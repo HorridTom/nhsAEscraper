@@ -7,4 +7,5 @@ packrat/lib*/
 # Data files
 data-raw/
 data-out/
-tests/testthat/test-data/
+tests/testthat/test-data/*
+!tests/testthat/test-data/neat-colnames.rda
