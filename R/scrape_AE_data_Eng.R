@@ -93,7 +93,7 @@ download_AE_files <- function(file_urls) {
 
   lapply(file_urls, function(x) {
     fn <- paste('data-raw/sitreps',stringr::str_match(x, f_name_regex)[,2],sep='/')
-    download.file(x,fn, mode = 'wb')
+    utils::download.file(x,fn, mode = 'wb')
   })
 
 }
@@ -155,9 +155,17 @@ tidy_AE_data <- function(raw_data) {
                                     E_Adm_4hBr_D = X__20,
                                     E_Adm_12hBr_D = X__21)
 
-  # At present this mutate_at call generates a 'NAs introduced by coercion' warning
-  # suspect this is due to Excel-generated N/A character strings - fix by first explicitly
-  # replacing these with NA values.
+
+  # Explicitly replace Excel 'N/A' with NA_character_
+  neat_data <- neat_data %>%
+    dplyr::mutate(Perf_Typ1 = dplyr::case_when(Perf_Typ1 == 'N/A' ~ NA_character_,
+                                               Perf_Typ1 == '-' ~ NA_character_,
+                                               Perf_Typ1 != 'N/A' ~ Perf_Typ1))
+  neat_data <- neat_data %>%
+    dplyr::mutate(Perf_All = dplyr::case_when(Perf_Typ1 == 'N/A' ~ NA_character_,
+                                              Perf_Typ1 == '-' ~ NA_character_,
+                                              Perf_Typ1 != 'N/A' ~ Perf_Typ1))
+
   neat_data <- neat_data %>% dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), dplyr::funs(as.numeric)) %>%
     dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), dplyr::funs(as.numeric)) %>%
     dplyr::mutate_at(dplyr::vars(dplyr::starts_with("E_Adm_")), dplyr::funs(as.numeric))
