@@ -9,6 +9,8 @@
 #'
 getAE_data <- function(update_data = TRUE, directory = 'data-raw/sitreps/') {
 
+  dir.create(directory, showWarnings = FALSE, recursive = TRUE)
+
   if(update_data) {
     urls <- getAEdata_urls_monthly()
     # TODO: Pass directory in here
@@ -61,7 +63,9 @@ getAEdata_urls_monthly <- function() {
 #' @export
 #'
 #' @examples
-#' getAEdata_page_urls_monthly('https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2017-18/')
+#' getAEdata_page_urls_monthly(paste0('https://www.england.nhs.uk/statistics/',
+#' 'statistical-work-areas/ae-waiting-times-and-activity/',
+#' 'ae-attendances-and-emergency-admissions-2017-18/'))
 getAEdata_page_urls_monthly <- function(index_url) {
 
   #Get the html from the index website
@@ -113,6 +117,14 @@ load_AE_files <- function(directory = 'data-raw/sitreps/') {
   dataList <- NULL
   dataList <- lapply(fileNames, function(x) {readxl::read_excel(x, sheet = 1, col_names = FALSE)})
   dataList
+}
+
+
+# Tell codetools not to worry about no visible binding for default imported data column names
+if(getRversion() >= "2.15.1") {
+  utils::globalVariables(c("X__1", "X__2", "X__3", "X__4", "X__5", "X__6", "X__7", "X__8",
+                           "X__9", "X__10", "X__11", "X__12", "X__13", "X__14", "X__15", "X__16",
+                           "X__17", "X__18", "X__19", "X__20", "X__21"))
 }
 
 
