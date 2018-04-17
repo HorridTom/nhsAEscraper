@@ -13,8 +13,7 @@ getAE_data <- function(update_data = TRUE, directory = 'data-raw/sitreps/') {
 
   if(update_data) {
     urls <- getAEdata_urls_monthly()
-    # TODO: Pass directory in here
-    download_AE_files(urls)
+    download_AE_files(urls, directory = directory)
   }
   rawDataList <- load_AE_files(directory = directory)
 
@@ -91,12 +90,21 @@ getAEdata_page_urls_monthly <- function(index_url) {
 }
 
 
-download_AE_files <- function(file_urls) {
+#' download_AE_files
+#'
+#' @param file_urls list of urls of files to download
+#' @param directory location to save files to
+#'
+#' @return vector of download.file return values
+#' @export
+#'
+#'
+download_AE_files <- function(file_urls, directory) {
 
   f_name_regex <- '/([^/]+)$'
 
   lapply(file_urls, function(x) {
-    fn <- paste('data-raw/sitreps',stringr::str_match(x, f_name_regex)[,2],sep='/')
+    fn <- file.path(directory, stringr::str_match(x, f_name_regex)[,2])
     utils::download.file(x,fn, mode = 'wb')
   })
 
