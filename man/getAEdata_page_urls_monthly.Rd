@@ -17,5 +17,7 @@ from one of the monthly data index pages
 getAEdata_page_urls_monthly
 }
 \examples{
-getAEdata_page_urls_monthly('https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2017-18/')
+getAEdata_page_urls_monthly(paste0('https://www.england.nhs.uk/statistics/',
+'statistical-work-areas/ae-waiting-times-and-activity/',
+'ae-attendances-and-emergency-admissions-2017-18/'))
 }
