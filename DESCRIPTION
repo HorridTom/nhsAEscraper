@@ -1,11 +1,15 @@
 Package: nhsAEscraper
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Title: Download and Accident and Emergency data from NHS England's website
+Version: 0.0.0.9000
+Authors@R: as.person(c(
+    "Thomas Woodcock <thomas.woodcock99@imperial.ac.uk> [aut, cre]"
+  ))
+Description: NHS England publishes monthly aggregated data on volume and
+    4 hour target performance by acute Trust, in the form of MS Excel
+    workbooks. Such a format does not facilitate statistical analysis,
+    especially over time. This package scrapes the data and organises
+    it into a coherent structure.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
@@ -17,4 +21,5 @@ Imports: dplyr,
     magrittr,
     tibble,
     lubridate,
-    zoo
+    zoo,
+    compare (>= 0.2-6)
