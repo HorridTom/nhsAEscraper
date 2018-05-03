@@ -16,3 +16,8 @@ the period (month) that this data pertains to
 \description{
 get_date
 }
+\examples{
+dataList <- load_AE_files(directory = 'nhsAEscraper/sitreps/')
+get_date(dataList[[1]])
+
+}

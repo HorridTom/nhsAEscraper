@@ -4,17 +4,24 @@
 \alias{getAE_data}
 \title{getAE_data}
 \usage{
-getAE_data(update_data = TRUE, directory = "data-raw/sitreps/")
+getAE_data(update_data = TRUE, directory = "data-raw/sitreps/",
+  url_list = NULL)
 }
 \arguments{
 \item{update_data}{whether to download files afresh from NHS England website (TRUE)
 or use existing downloaded files (FALSE)}
 
 \item{directory}{directory to find existing downloaded files, and to save new downloads}
+
+\item{url_list}{list of urls (as strings) for the pages to scrape for data files}
 }
 \value{
 A data frame containing all the monthly A&E data from the NHS England website.
 }
 \description{
 getAE_data
+}
+\examples{
+AE_data <- getAE_data(directory = 'nhsAEscraper/sitreps/')
+str(AE_data)
 }

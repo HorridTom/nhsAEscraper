@@ -15,8 +15,21 @@ for one month, from the NHS England website}
 \value{
 boolean indicating whether data frame is in correct format
 for analysis. Length 1 if verbose = FALSE, length 6 if not - in this case
-each element pertains to a specific column of raw_data that is checked.
+each element pertains to a specific aspect of raw_data that is checked, respectively:
+1 - column 1 contains the heading Code
+2 - column 2 contains the heading Region
+3 - column 3 contains the heading Name
+4 - column 4 contains the heading A&E attendances
+5 - column 8 contains the heading A&E attendances > 4 hours from arrival to admission
+6 - column 14 contains the heading Emergency Admissions
+Note that the 5th element allows the words greater than as well as the symbol.
 }
 \description{
 check_format
+}
+\examples{
+\dontrun{
+  dataList <- load_AE_files(directory = 'nhsAEscraper/sitreps/')
+  check_format(dataList[[1]], verbose = TRUE)
+}
 }

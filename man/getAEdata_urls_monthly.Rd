@@ -4,7 +4,10 @@
 \alias{getAEdata_urls_monthly}
 \title{getAEdata_urls_monthly}
 \usage{
-getAEdata_urls_monthly()
+getAEdata_urls_monthly(url_list = NULL)
+}
+\arguments{
+\item{url_list}{list of urls (as strings) for the pages to scrape for data files}
 }
 \value{
 the urls for NHS England A&E data *.xls files from two pages
@@ -14,5 +17,6 @@ yielding addresses for monthly data from June 2015 to (in principle) present.
 getAEdata_urls_monthly
 }
 \examples{
-getAEdata_urls_monthly()
+urls <- getAEdata_urls_monthly()
+head(urls, n = 3)
 }

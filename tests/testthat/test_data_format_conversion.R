@@ -36,7 +36,7 @@ test_that("Can get period date for data file",{
 })
 
 test_that("Data file processed correctly into rectangualar data frames",{
-  neatDataList <- lapply(rawDataList_conv, tidy_AE_data)
+  neatDataList <- lapply(rawDataList_conv, clean_AE_data)
 
   load('test-data/neat-colnames.rda')
 

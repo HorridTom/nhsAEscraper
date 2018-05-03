@@ -27,3 +27,12 @@ test_that("getAEdata_urls_monthly returns urls with correct anatomy",{
   expect_equal(all(!is.na(filename_strings)), TRUE, info = 'Filename components')
   expect_equal(all(dates_valid), TRUE, info = 'Month-Year')
 })
+
+test_that("getAEdata_urls_monthly url_list argument controls which web pages to scrape",{
+  url_16_17 <- paste0("https://www.england.nhs.uk/statistics/statistical-work-areas/",
+                      "ae-waiting-times-and-activity/statistical-work-areasae-waiting",
+                      "-times-and-activityae-attendances-and-emergency-admissions-2016-17/")
+
+  AE_data_urls_16_17 <- getAEdata_urls_monthly(list(url_16_17))
+  expect_equal(length(AE_data_urls_16_17), 12, info = '12 data file urls on 2016-2017 page')
+})

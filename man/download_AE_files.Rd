@@ -17,3 +17,9 @@ vector of download.file return values
 \description{
 download_AE_files
 }
+\examples{
+urls <- getAEdata_page_urls_monthly(paste0('https://www.england.nhs.uk/statistics/',
+'statistical-work-areas/ae-waiting-times-and-activity/',
+'ae-attendances-and-emergency-admissions-2017-18/'))
+download_AE_files(urls[1], directory = 'nhsAEscraper/sitreps/')
+}

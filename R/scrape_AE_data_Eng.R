@@ -3,16 +3,20 @@
 #' @param update_data whether to download files afresh from NHS England website (TRUE)
 #' or use existing downloaded files (FALSE)
 #' @param directory directory to find existing downloaded files, and to save new downloads
+#' @param url_list list of urls (as strings) for the pages to scrape for data files
 #'
 #' @return A data frame containing all the monthly A&E data from the NHS England website.
 #' @export
 #'
-getAE_data <- function(update_data = TRUE, directory = 'data-raw/sitreps/') {
+#' @examples
+#' AE_data <- getAE_data(directory = 'nhsAEscraper/sitreps/')
+#' str(AE_data)
+getAE_data <- function(update_data = TRUE, directory = 'data-raw/sitreps/', url_list = NULL) {
 
   dir.create(directory, showWarnings = FALSE, recursive = TRUE)
 
   if(update_data) {
-    urls <- getAEdata_urls_monthly()
+    urls <- getAEdata_urls_monthly(url_list = url_list)
     download_AE_files(urls, directory = directory)
   }
   rawDataList <- load_AE_files(directory = directory)
@@ -23,9 +27,9 @@ getAE_data <- function(update_data = TRUE, directory = 'data-raw/sitreps/') {
     stop('There is a problem with the format of the data in one or more of the files')
   }
 
-  neatDataList <- lapply(rawDataList, tidy_AE_data)
+  cleanDataList <- lapply(rawDataList, clean_AE_data)
 
-  AE_data <- dplyr::bind_rows(neatDataList)
+  AE_data <- dplyr::bind_rows(cleanDataList)
 
   AE_data
 
@@ -34,19 +38,25 @@ getAE_data <- function(update_data = TRUE, directory = 'data-raw/sitreps/') {
 
 #' getAEdata_urls_monthly
 #'
+#' @param url_list list of urls (as strings) for the pages to scrape for data files
+#'
 #' @return the urls for NHS England A&E data *.xls files from two pages
 #' yielding addresses for monthly data from June 2015 to (in principle) present.
 #' @export
 #'
 #' @examples
-#' getAEdata_urls_monthly()
-getAEdata_urls_monthly <- function() {
+#' urls <- getAEdata_urls_monthly()
+#' head(urls, n = 3)
+getAEdata_urls_monthly <- function(url_list = NULL) {
 
-  url_15_16 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/statistical-work-areasae-waiting-times-and-activityae-attendances-and-emergency-admissions-2015-16-monthly-3/"
-  url_16_17 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/statistical-work-areasae-waiting-times-and-activityae-attendances-and-emergency-admissions-2016-17/"
-  url_17_18 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2017-18/"
+  if(is.null(url_list)) {
+    url_15_16 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/statistical-work-areasae-waiting-times-and-activityae-attendances-and-emergency-admissions-2015-16-monthly-3/"
+    url_16_17 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/statistical-work-areasae-waiting-times-and-activityae-attendances-and-emergency-admissions-2016-17/"
+    url_17_18 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2017-18/"
 
-  url_list <- list(url_15_16, url_16_17, url_17_18)
+    url_list <- list(url_15_16, url_16_17, url_17_18)
+  }
+
   unlist(lapply(url_list,function(x) getAEdata_page_urls_monthly(x)))
 
 }
@@ -62,9 +72,10 @@ getAEdata_urls_monthly <- function() {
 #' @export
 #'
 #' @examples
-#' getAEdata_page_urls_monthly(paste0('https://www.england.nhs.uk/statistics/',
+#' urls <- getAEdata_page_urls_monthly(paste0('https://www.england.nhs.uk/statistics/',
 #' 'statistical-work-areas/ae-waiting-times-and-activity/',
 #' 'ae-attendances-and-emergency-admissions-2017-18/'))
+#' head(urls, n = 3)
 getAEdata_page_urls_monthly <- function(index_url) {
 
   #Get the html from the index website
@@ -98,7 +109,11 @@ getAEdata_page_urls_monthly <- function(index_url) {
 #' @return vector of download.file return values
 #' @export
 #'
-#'
+#' @examples
+#' urls <- getAEdata_page_urls_monthly(paste0('https://www.england.nhs.uk/statistics/',
+#' 'statistical-work-areas/ae-waiting-times-and-activity/',
+#' 'ae-attendances-and-emergency-admissions-2017-18/'))
+#' download_AE_files(urls[1], directory = 'nhsAEscraper/sitreps/')
 download_AE_files <- function(file_urls, directory) {
 
   f_name_regex <- '/([^/]+)$'
@@ -119,6 +134,9 @@ download_AE_files <- function(file_urls, directory) {
 #' whose name is of the form '\*AE-by-provider\*.xls'
 #' @export
 #'
+#' @examples
+#' dataList <- load_AE_files(directory = 'nhsAEscraper/sitreps/')
+#'
 load_AE_files <- function(directory = 'data-raw/sitreps/') {
 
   fileNames <- Sys.glob(paste(directory,'*AE-by-provider*.xls',sep=''))
@@ -136,7 +154,7 @@ if(getRversion() >= "2.15.1") {
 }
 
 
-#' tidy_AE_data
+#' clean_AE_data
 #'
 #' @param raw_data dataframe containing a NHS England A&E Monthly report
 #' with a standardised set of columns
@@ -144,15 +162,15 @@ if(getRversion() >= "2.15.1") {
 #' @return the same data as raw_data, as a rectangular table with header removed,
 #' new column names, and correct numerical data types for numerical columns
 #' @importFrom magrittr %>%
-#' @export
 #'
-tidy_AE_data <- function(raw_data) {
+#'
+clean_AE_data <- function(raw_data) {
 
   data_date <- get_date(raw_data)
 
-  neat_data <- raw_data %>% dplyr::filter(grepl("^[A-Z0-9]+$",X__1))
+  clean_data <- raw_data %>% dplyr::filter(grepl("^[A-Z0-9]+$",X__1))
 
-  neat_data <- neat_data %>% dplyr::select(X__1:X__21) %>%
+  clean_data <- clean_data %>% dplyr::select(X__1:X__21) %>%
     dplyr::rename(Prov_Code = X__1,
                                     Region = X__2,
                                     Prov_Name = X__3,
@@ -177,22 +195,22 @@ tidy_AE_data <- function(raw_data) {
 
 
   # Explicitly replace Excel 'N/A' with NA_character_
-  neat_data <- neat_data %>%
+  clean_data <- clean_data %>%
     dplyr::mutate(Perf_Typ1 = dplyr::case_when(Perf_Typ1 == 'N/A' ~ NA_character_,
                                                Perf_Typ1 == '-' ~ NA_character_,
                                                Perf_Typ1 != 'N/A' ~ Perf_Typ1))
-  neat_data <- neat_data %>%
+  clean_data <- clean_data %>%
     dplyr::mutate(Perf_All = dplyr::case_when(Perf_Typ1 == 'N/A' ~ NA_character_,
                                               Perf_Typ1 == '-' ~ NA_character_,
                                               Perf_Typ1 != 'N/A' ~ Perf_Typ1))
 
-  neat_data <- neat_data %>% dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), dplyr::funs(as.numeric)) %>%
+  clean_data <- clean_data %>% dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), dplyr::funs(as.numeric)) %>%
     dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), dplyr::funs(as.numeric)) %>%
     dplyr::mutate_at(dplyr::vars(dplyr::starts_with("E_Adm_")), dplyr::funs(as.numeric))
 
-  neat_data <- neat_data %>% tibble::add_column(Month_Start = data_date, .after = 3)
+  clean_data <- clean_data %>% tibble::add_column(Month_Start = data_date, .after = 3)
 
-  neat_data
+  clean_data
 }
 
 
@@ -204,9 +222,22 @@ tidy_AE_data <- function(raw_data) {
 #'
 #' @return boolean indicating whether data frame is in correct format
 #' for analysis. Length 1 if verbose = FALSE, length 6 if not - in this case
-#' each element pertains to a specific column of raw_data that is checked.
+#' each element pertains to a specific aspect of raw_data that is checked, respectively:
+#' 1 - column 1 contains the heading Code
+#' 2 - column 2 contains the heading Region
+#' 3 - column 3 contains the heading Name
+#' 4 - column 4 contains the heading A&E attendances
+#' 5 - column 8 contains the heading A&E attendances > 4 hours from arrival to admission
+#' 6 - column 14 contains the heading Emergency Admissions
+#' Note that the 5th element allows the words greater than as well as the symbol.
+#'
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'   dataList <- load_AE_files(directory = 'nhsAEscraper/sitreps/')
+#'   check_format(dataList[[1]], verbose = TRUE)
+#' }
 check_format <- function(raw_data, verbose = FALSE) {
 
   format_status <- logical()
@@ -235,6 +266,10 @@ check_format <- function(raw_data, verbose = FALSE) {
 #' @return the period (month) that this data pertains to
 #' @export
 #'
+#' @examples
+#' dataList <- load_AE_files(directory = 'nhsAEscraper/sitreps/')
+#' get_date(dataList[[1]])
+#'
 get_date <- function(raw_data) {
   #Find the cell specifying the period and extract the text
   date_chr <- raw_data %>% dplyr::filter(X__1 == "Period:") %>%
@@ -250,7 +285,6 @@ get_date <- function(raw_data) {
 #' for one month, from the NHS England website
 #'
 #' @return df with superfluous columns removed
-#' @export
 #'
 delete_extra_columns <- function(df) {
   format_type_x <- nrow(df %>% dplyr::filter(grepl("A&E attendances less than 4 hours from arrival to admission",X__8))) == 1

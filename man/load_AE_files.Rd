@@ -16,3 +16,7 @@ whose name is of the form '\*AE-by-provider\*.xls'
 \description{
 load_AE_files
 }
+\examples{
+dataList <- load_AE_files(directory = 'nhsAEscraper/sitreps/')
+
+}
