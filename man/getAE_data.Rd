@@ -4,7 +4,7 @@
 \alias{getAE_data}
 \title{getAE_data}
 \usage{
-getAE_data(update_data = TRUE, directory = "data-raw/sitreps/",
+getAE_data(update_data = TRUE, directory = file.path("data-raw", "sitreps"),
   url_list = NULL)
 }
 \arguments{
@@ -22,6 +22,6 @@ A data frame containing all the monthly A&E data from the NHS England website.
 getAE_data
 }
 \examples{
-AE_data <- getAE_data(directory = 'nhsAEscraper/sitreps/')
+AE_data <- getAE_data(directory = file.path('nhsAEscraper','sitreps'))
 str(AE_data)
 }

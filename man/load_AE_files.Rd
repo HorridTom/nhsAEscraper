@@ -4,7 +4,7 @@
 \alias{load_AE_files}
 \title{load_AE_files}
 \usage{
-load_AE_files(directory = "data-raw/sitreps/")
+load_AE_files(directory = file.path("data-raw", "sitreps"))
 }
 \arguments{
 \item{directory}{path of the directory to load files from}
@@ -17,6 +17,6 @@ whose name is of the form '\*AE-by-provider\*.xls'
 load_AE_files
 }
 \examples{
-dataList <- load_AE_files(directory = 'nhsAEscraper/sitreps/')
+dataList <- load_AE_files(directory = file.path('nhsAEscraper','sitreps'))
 
 }

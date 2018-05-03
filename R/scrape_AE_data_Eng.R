@@ -9,9 +9,10 @@
 #' @export
 #'
 #' @examples
-#' AE_data <- getAE_data(directory = 'nhsAEscraper/sitreps/')
+#' AE_data <- getAE_data(directory = file.path('nhsAEscraper','sitreps'))
 #' str(AE_data)
-getAE_data <- function(update_data = TRUE, directory = 'data-raw/sitreps/', url_list = NULL) {
+getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sitreps'),
+                       url_list = NULL) {
 
   dir.create(directory, showWarnings = FALSE, recursive = TRUE)
 
@@ -113,7 +114,7 @@ getAEdata_page_urls_monthly <- function(index_url) {
 #' urls <- getAEdata_page_urls_monthly(paste0('https://www.england.nhs.uk/statistics/',
 #' 'statistical-work-areas/ae-waiting-times-and-activity/',
 #' 'ae-attendances-and-emergency-admissions-2017-18/'))
-#' download_AE_files(urls[1], directory = 'nhsAEscraper/sitreps/')
+#' download_AE_files(urls[1], directory = file.path('nhsAEscraper','sitreps'))
 download_AE_files <- function(file_urls, directory) {
 
   f_name_regex <- '/([^/]+)$'
@@ -135,11 +136,11 @@ download_AE_files <- function(file_urls, directory) {
 #' @export
 #'
 #' @examples
-#' dataList <- load_AE_files(directory = 'nhsAEscraper/sitreps/')
+#' dataList <- load_AE_files(directory = file.path('nhsAEscraper','sitreps'))
 #'
-load_AE_files <- function(directory = 'data-raw/sitreps/') {
+load_AE_files <- function(directory = file.path('data-raw','sitreps')) {
 
-  fileNames <- Sys.glob(paste(directory,'*AE-by-provider*.xls',sep=''))
+  fileNames <- Sys.glob(file.path(directory,'*AE-by-provider*.xls'))
   dataList <- NULL
   dataList <- lapply(fileNames, function(x) {readxl::read_excel(x, sheet = 1, col_names = FALSE)})
   dataList
