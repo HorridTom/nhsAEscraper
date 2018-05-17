@@ -1,7 +1,7 @@
 Package: nhsAEscraper
 Type: Package
 Title: Download and Accident and Emergency data from NHS England's website
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: as.person(c(
     "Thomas Woodcock <thomas.woodcock99@imperial.ac.uk> [aut, cre]"
   ))

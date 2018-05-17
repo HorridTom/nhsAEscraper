@@ -54,8 +54,9 @@ getAEdata_urls_monthly <- function(url_list = NULL) {
     url_15_16 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/statistical-work-areasae-waiting-times-and-activityae-attendances-and-emergency-admissions-2015-16-monthly-3/"
     url_16_17 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/statistical-work-areasae-waiting-times-and-activityae-attendances-and-emergency-admissions-2016-17/"
     url_17_18 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2017-18/"
+    url_18_19 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2018-19/"
 
-    url_list <- list(url_15_16, url_16_17, url_17_18)
+    url_list <- list(url_15_16, url_16_17, url_17_18, url_18_19)
   }
 
   unlist(lapply(url_list,function(x) getAEdata_page_urls_monthly(x)))
