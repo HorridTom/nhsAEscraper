@@ -122,7 +122,7 @@ download_AE_files <- function(file_urls, directory) {
 
   lapply(file_urls, function(x) {
     fn <- file.path(directory, stringr::str_match(x, f_name_regex)[,2])
-    utils::download.file(x,fn, mode = 'wb')
+    httr::GET(x, httr::write_disk(fn, overwrite = TRUE))
   })
 
 }
