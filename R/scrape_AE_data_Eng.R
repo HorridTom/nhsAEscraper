@@ -143,7 +143,12 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps')) {
 
   fileNames <- Sys.glob(file.path(directory,'*AE-by-provider*.xls'))
   dataList <- NULL
-  dataList <- lapply(fileNames, function(x) {readxl::read_excel(x, sheet = 1, col_names = FALSE)})
+  dataList <- lapply(fileNames, function(x) {
+    cat(file=stderr(), "Loading: ", x, "\n")
+    df <- readxl::read_excel(x, sheet = 1, col_names = FALSE)
+    cat(file=stderr(), "Success loaded: ", x, "\n")
+    df
+    })
   dataList
 }
 
