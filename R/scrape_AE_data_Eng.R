@@ -4,6 +4,8 @@
 #' or use existing downloaded files (FALSE)
 #' @param directory directory to find existing downloaded files, and to save new downloads
 #' @param url_list list of urls (as strings) for the pages to scrape for data files
+#' @param use_filename_date if TRUE, take dates from the Excel file's name, if FALSE,
+#' take from the date specified inside the sheet
 #'
 #' @return A data frame containing all the monthly A&E data from the NHS England website.
 #' @export
@@ -12,7 +14,7 @@
 #' AE_data <- getAE_data(directory = file.path('nhsAEscraper','sitreps'))
 #' str(AE_data)
 getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sitreps'),
-                       url_list = NULL) {
+                       url_list = NULL, use_filename_date = FALSE) {
 
   dir.create(directory, showWarnings = FALSE, recursive = TRUE)
 
@@ -20,7 +22,7 @@ getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sit
     urls <- getAEdata_urls_monthly(url_list = url_list)
     download_AE_files(urls, directory = directory)
   }
-  rawDataList <- load_AE_files(directory = directory)
+  rawDataList <- load_AE_files(directory = directory, use_filename_date = use_filename_date)
 
   rawDataList <- lapply(rawDataList, delete_extra_columns)
 
@@ -145,7 +147,7 @@ download_AE_files <- function(file_urls, directory) {
 #' @examples
 #' dataList <- load_AE_files(directory = file.path('nhsAEscraper','sitreps'))
 #'
-load_AE_files <- function(directory = file.path('data-raw','sitreps')) {
+load_AE_files <- function(directory = file.path('data-raw','sitreps'), use_filename_date = TRUE) {
 
   fileNames <- Sys.glob(file.path(directory,'*AE-by-provider*.xls'))
   dataList <- NULL
@@ -153,6 +155,12 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps')) {
     cat(file=stderr(), "Loading: ", x, "\n")
     df <- readxl::read_excel(x, sheet = 1, col_names = FALSE)
     cat(file=stderr(), "Success loaded: ", x, "\n")
+    if(use_filename_date) {
+      dt_chr <- stringr::str_replace(
+        stringr::str_match(x, '/(([0-9A-Za-z]|-)*)-AE-by-provider')[,2], '-', ' '
+        )
+      df <- df %>% dplyr::mutate(X__2 = ifelse(X__1 == 'Period:', dt_chr, X__2))
+    }
     df
     })
   dataList
