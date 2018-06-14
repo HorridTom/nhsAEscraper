@@ -1,6 +1,6 @@
 Package: nhsAEscraper
 Type: Package
-Title: Download and Accident and Emergency data from NHS England's website
+Title: Download and collate Accident and Emergency data from NHS England's website
 Version: 0.0.0.9002
 Authors@R: as.person(c(
     "Thomas Woodcock <thomas.woodcock99@imperial.ac.uk> [aut, cre]"
