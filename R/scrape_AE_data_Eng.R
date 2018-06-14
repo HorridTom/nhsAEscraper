@@ -118,6 +118,12 @@ getAEdata_page_urls_monthly <- function(index_url) {
 #' download_AE_files(urls[1], directory = file.path('nhsAEscraper','sitreps'))
 download_AE_files <- function(file_urls, directory) {
 
+  file.remove(
+    dir(directory,
+        pattern = "*",
+        full.names = TRUE)
+  )
+
   f_name_regex <- '/([^/]+)$'
 
   lapply(file_urls, function(x) {
