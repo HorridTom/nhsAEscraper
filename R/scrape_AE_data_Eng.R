@@ -43,7 +43,7 @@ getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sit
 #'
 #' @param url_list list of urls (as strings) for the pages to scrape for data files
 #'
-#' @return the urls for NHS England A&E data *.xls files from two pages
+#' @return the urls for NHS England A&E data *.xls files from pages in url_list
 #' yielding addresses for monthly data from June 2015 to (in principle) present.
 #' @export
 #'

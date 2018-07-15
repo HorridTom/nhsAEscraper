@@ -5,9 +5,9 @@ Version: 0.0.0.9002
 Authors@R: as.person(c(
     "Thomas Woodcock <thomas.woodcock99@imperial.ac.uk> [aut, cre]"
   ))
-Description: NHS England publishes monthly aggregated data on volume and
-    4 hour target performance by acute Trust, in the form of MS Excel
-    workbooks. Such a format does not facilitate statistical analysis,
+Description: NHS England publishes monthly aggregated data on A&E attendance numbers and
+    4 hour target performance by provider organisation, in the form of MS Excel
+    workbooks. This format does not facilitate statistical analysis,
     especially over time. This package scrapes the data and organises
     it into a coherent structure.
 License: file LICENSE
