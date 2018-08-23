@@ -32,9 +32,45 @@ getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sit
 
   cleanDataList <- lapply(rawDataList, clean_AE_data)
 
-  AE_data <- dplyr::bind_rows(cleanDataList)
+  cleanDataRegRowsList <- lapply(cleanDataList, add_regional_row, region = "Whole of England")
+  cleanDataRegRowsList <- lapply(cleanDataRegRowsList, add_regional_row, region = "London")
+  cleanDataRegRowsList <- lapply(cleanDataRegRowsList, add_regional_row, region = "Midlands")
+  cleanDataRegRowsList <- lapply(cleanDataRegRowsList, add_regional_row, region = "North")
+  cleanDataRegRowsList <- lapply(cleanDataRegRowsList, add_regional_row, region = "South")
+
+  AE_data <- dplyr::bind_rows(cleanDataRegRowsList)
 
   AE_data
+
+}
+
+
+#added function to be called in getAE_data
+#earlier years do not distinguish between South East and South West (and NE and NW) so had to lump all of South together
+add_regional_row <- function(df, region){
+
+  if(region == "Whole of England"){
+    df1 <- df
+    titleEnd <- NULL
+  }else if(region == "North" | region == "South"){
+    df1 <- df %>%
+      filter(str_detect(df$Region ,coll(!!region, ignore_case = T)))
+    titleEnd <- "of England"
+  }else{
+    df1 <- df %>%
+      filter(str_detect(df$Region ,coll(!!region, ignore_case = T)))
+    titleEnd <- NULL
+  }
+
+  df <- df %>%
+    add_row(Prov_Code = paste("Region:",!!region), Region = !!region, Prov_Name = paste("Region:",!!region, titleEnd),
+            Month_Start = df1[[1,4]], Att_Typ1 = sum(df1$Att_Typ1), Att_Typ2 = sum(df1$Att_Typ2),
+            Att_Typ3 = sum(df1$Att_Typ3), Att_All = sum(df1$Att_All), Att_Typ1_Br = sum(df1$Att_Typ1_Br),
+            Att_Typ2_Br = sum(df1$Att_Typ2_Br), Att_Typ3_Br = sum(df1$Att_Typ3_Br), Att_All_Br = sum(df1$Att_All_Br),
+            Perf_Typ1 = (Att_Typ1 - Att_Typ1_Br)/Att_Typ1, Perf_All = (Att_All - Att_All_Br)/Att_All,
+            E_Adm_Typ1 = sum(df1$E_Adm_Typ1), E_Adm_Typ2 = sum(df1$E_Adm_Typ2), E_Adm_Typ34 = sum(df1$E_Adm_Typ34),
+            E_Adm_All_ED = sum(df1$E_Adm_All_ED), E_Adm_Not_ED = sum(df1$E_Adm_Not_ED), E_Adm_All = sum(df1$E_Adm_All),
+            E_Adm_4hBr_D = sum(df1$E_Adm_4hBr_D), E_Adm_12hBr_D = sum(df1$E_Adm_12hBr_D))
 
 }
 
