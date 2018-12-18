@@ -14,23 +14,26 @@
 #' AE_data <- getAE_data(directory = file.path('nhsAEscraper','sitreps'))
 #' str(AE_data)
 getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sitreps'),
-                       url_list = NULL, use_filename_date = FALSE) {
+                       url_list = NULL, use_filename_date = FALSE,
+                       country = "England") {
 
   dir.create(directory, showWarnings = FALSE, recursive = TRUE)
 
   if(update_data) {
-    urls <- getAEdata_urls_monthly(url_list = url_list)
+    urls <- getAEdata_urls_monthly(url_list = url_list, country = country)
     download_AE_files(urls, directory = directory)
   }
-  rawDataList <- load_AE_files(directory = directory, use_filename_date = use_filename_date)
+  rawDataList <- load_AE_files(directory = directory, use_filename_date = use_filename_date, country = country)
 
-  rawDataList <- lapply(rawDataList, delete_extra_columns)
+  rawDataList <- lapply(rawDataList, delete_extra_columns, country = country)
 
-  if(!all(unlist(lapply(rawDataList, check_format)))) {
-    stop('There is a problem with the format of the data in one or more of the files')
+  if(country == "England"){
+    if(!all(unlist(lapply(rawDataList, check_format)))) {
+      stop('There is a problem with the format of the data in one or more of the files')
+    }
   }
 
-  cleanDataList <- lapply(rawDataList, clean_AE_data)
+  cleanDataList <- lapply(rawDataList, clean_AE_data, country = country)
 
   AE_data <- dplyr::bind_rows(cleanDataList)
 
@@ -50,19 +53,23 @@ getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sit
 #' @examples
 #' urls <- getAEdata_urls_monthly()
 #' head(urls, n = 3)
-getAEdata_urls_monthly <- function(url_list = NULL) {
+getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
 
-  if(is.null(url_list)) {
+  if(is.null(url_list) & country == "England"){
     url_15_16 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/statistical-work-areasae-waiting-times-and-activityae-attendances-and-emergency-admissions-2015-16-monthly-3/"
     url_16_17 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/statistical-work-areasae-waiting-times-and-activityae-attendances-and-emergency-admissions-2016-17/"
     url_17_18 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2017-18/"
     url_18_19 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2018-19/"
 
     url_list <- list(url_15_16, url_16_17, url_17_18, url_18_19)
+  }else if(is.null(url_list)){
+    url_15_18 <- "http://www.isdscotland.org/Health-Topics/Emergency-Care/Publications/data-tables2017.asp?id"
+
+    url_list <- list(url_15_18)
+    # url_vect <- unlist(lapply(url_list,function(x) getAEdata_page_urls_monthly(x)))
+    # url_vect
   }
-
-  unlist(lapply(url_list,function(x) getAEdata_page_urls_monthly(x)))
-
+  unlist(lapply(url_list,function(x) getAEdata_page_urls_monthly(x, country = country)))
 }
 
 
@@ -80,28 +87,44 @@ getAEdata_urls_monthly <- function(url_list = NULL) {
 #' 'statistical-work-areas/ae-waiting-times-and-activity/',
 #' 'ae-attendances-and-emergency-admissions-2017-18/'))
 #' head(urls, n = 3)
-getAEdata_page_urls_monthly <- function(index_url) {
+getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
-  #Get the html from the index website
   con <- url(index_url, "r")
-  html_lines <- readLines(con)
 
-  #Close connection
-  close(con)
+  if(country == "England"){
+    #Get the html from the index website
+    html_lines <- readLines(con)
 
-  #Look for lines that contain the signature part of the url and the signature text
-  data_url_lines <- grep("^(?=.*xls)((?!Quarter).)*$",html_lines, perl=TRUE)
-  xlsdata_url_lines <- grep("AE-by-provider",html_lines[data_url_lines])
-  NHSE_xlsdata_lines <- html_lines[data_url_lines][xlsdata_url_lines]
+    #Close connection
+    close(con)
 
-  #Extract urls from html lines
-  starts <- regexpr("http",NHSE_xlsdata_lines)
-  ends <- regexpr(".xls",NHSE_xlsdata_lines) + 3
-  urls <- substr(NHSE_xlsdata_lines, starts, ends)
+    #Look for lines that contain the signature part of the url and the signature text
+    data_url_lines <- grep("^(?=.*xls)((?!Quarter).)*$",html_lines, perl=TRUE)
+    xlsdata_url_lines <- grep("AE-by-provider",html_lines[data_url_lines])
+    NHSE_xlsdata_lines <- html_lines[data_url_lines][xlsdata_url_lines]
 
-  #Return urls
+    #Extract urls from html lines
+    starts <- regexpr("http",NHSE_xlsdata_lines)
+    ends <- regexpr(".xls",NHSE_xlsdata_lines) + 3
+    urls <- substr(NHSE_xlsdata_lines, starts, ends)
+  }else{
+
+    #n=3350 argument stops it from reading last line of webpage which has a error in it thus avoiding a warning message.
+    html_lines <- readLines(con, n = 3350)
+
+    close(con)
+
+    hosp_data_url_lines <- grep("ED-Weekly-Hospital-Data",html_lines)
+    board_data_url_lines <- grep("ED-Weekly-NHSBoard-Data",html_lines)
+    scot_data_url_lines <- grep("ED-Weekly-NHSScotland-Data",html_lines)
+    NHSS_csvdata_lines_hosp <- html_lines[hosp_data_url_lines]
+    NHSS_csvdata_lines_board <- html_lines[board_data_url_lines]
+    NHSS_csvdata_lines_scot <- html_lines[scot_data_url_lines]
+
+    urls_hosp <- substr(NHSS_csvdata_lines_hosp, regexpr("http",NHSS_csvdata_lines_hosp), regexpr(".csv",NHSS_csvdata_lines_hosp) + 3)
+    urls <- urls_hosp[1]
+  }
   return(urls)
-
 }
 
 
@@ -147,15 +170,24 @@ download_AE_files <- function(file_urls, directory) {
 #' @examples
 #' dataList <- load_AE_files(directory = file.path('nhsAEscraper','sitreps'))
 #'
-load_AE_files <- function(directory = file.path('data-raw','sitreps'), use_filename_date = TRUE) {
+load_AE_files <- function(directory = file.path('data-raw','sitreps'), use_filename_date = TRUE, country = "England") {
 
-  fileNames <- Sys.glob(file.path(directory,'*AE-by-provider*.xls'))
+  if(country == "England"){
+    fileNames <- Sys.glob(file.path(directory,'*AE-by-provider*.xls'))
+  }else{
+    fileNames <- Sys.glob(file.path(directory,'*-Data*.csv'))
+  }
+
   dataList <- NULL
   dataList <- lapply(fileNames, function(x) {
     cat(file=stderr(), "Loading: ", x, "\n")
-    df <- readxl::read_excel(x, sheet = 1, col_names = FALSE)
+    if(country == "England"){
+      df <- readxl::read_excel(x, sheet = 1, col_names = FALSE)
+    }else{
+      df <- utils::read.csv(x)
+    }
     cat(file=stderr(), "Success loaded: ", x, "\n")
-    if(use_filename_date) {
+    if(use_filename_date & country == "England") {
       dt_chr <- stringr::str_replace(
         stringr::str_match(x, '/(([0-9A-Za-z]|-)*)-AE-by-provider')[,2], '-', ' '
         )
@@ -165,7 +197,6 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'), use_filen
     })
   dataList
 }
-
 
 # Tell codetools not to worry about no visible binding for default imported data column names
 if(getRversion() >= "2.15.1") {
@@ -185,14 +216,16 @@ if(getRversion() >= "2.15.1") {
 #' @importFrom magrittr %>%
 #'
 #'
-clean_AE_data <- function(raw_data) {
+clean_AE_data <- function(raw_data, country = "England") {
 
-  data_date <- get_date(raw_data)
+  if(country == "England"){
 
-  clean_data <- raw_data %>% dplyr::filter(grepl("^[A-Z0-9]+$",X__1))
+    data_date <- get_date(raw_data)
 
-  clean_data <- clean_data %>% dplyr::select(X__1:X__21) %>%
-    dplyr::rename(Prov_Code = X__1,
+    clean_data <- raw_data %>% dplyr::filter(grepl("^[A-Z0-9]+$",X__1))
+
+    clean_data <- clean_data %>% dplyr::select(X__1:X__21) %>%
+      dplyr::rename(Prov_Code = X__1,
                                     Region = X__2,
                                     Prov_Name = X__3,
                                     Att_Typ1 = X__4,
@@ -215,21 +248,50 @@ clean_AE_data <- function(raw_data) {
                                     E_Adm_12hBr_D = X__21)
 
 
-  # Explicitly replace Excel 'N/A' with NA_character_
-  clean_data <- clean_data %>%
-    dplyr::mutate(Perf_Typ1 = dplyr::case_when(Perf_Typ1 == 'N/A' ~ NA_character_,
-                                               Perf_Typ1 == '-' ~ NA_character_,
-                                               Perf_Typ1 != 'N/A' ~ Perf_Typ1))
-  clean_data <- clean_data %>%
-    dplyr::mutate(Perf_All = dplyr::case_when(Perf_Typ1 == 'N/A' ~ NA_character_,
-                                              Perf_Typ1 == '-' ~ NA_character_,
-                                              Perf_Typ1 != 'N/A' ~ Perf_Typ1))
+    # Explicitly replace Excel 'N/A' with NA_character_
+    clean_data <- clean_data %>%
+      dplyr::mutate(Perf_Typ1 = dplyr::case_when(Perf_Typ1 == 'N/A' ~ NA_character_,
+                                                 Perf_Typ1 == '-' ~ NA_character_,
+                                                 Perf_Typ1 != 'N/A' ~ Perf_Typ1))
+    clean_data <- clean_data %>%
+      dplyr::mutate(Perf_All = dplyr::case_when(Perf_Typ1 == 'N/A' ~ NA_character_,
+                                                Perf_Typ1 == '-' ~ NA_character_,
+                                                Perf_Typ1 != 'N/A' ~ Perf_Typ1))
 
-  clean_data <- clean_data %>% dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), dplyr::funs(as.numeric)) %>%
-    dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), dplyr::funs(as.numeric)) %>%
-    dplyr::mutate_at(dplyr::vars(dplyr::starts_with("E_Adm_")), dplyr::funs(as.numeric))
+    clean_data <- clean_data %>% dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), dplyr::funs(as.numeric)) %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), dplyr::funs(as.numeric)) %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::starts_with("E_Adm_")), dplyr::funs(as.numeric))
 
-  clean_data <- clean_data %>% tibble::add_column(Month_Start = data_date, .after = 3)
+    clean_data <- clean_data %>% tibble::add_column(Month_Start = data_date, .after = 3)
+
+  }else{
+    clean_data <- raw_data
+
+    clean_data <- clean_data %>% dplyr::select(X__1:X__12) %>%
+      dplyr::rename(Week_End = X__1,
+                    Board_Code = X__2,
+                    Board_Name = X__3,
+                    Prov_Code = X__4,
+                    Prov_Name = X__5,
+                    Att_All = X__6,
+                    Att_4hr_Br = X__7,
+                    Perf_4hr = X__8,
+                    Att_8hr_Br = X__9,
+                    Perf_8hr = X__10,
+                    Att_12hr_Br = X__11,
+                    Perf_12hr = X__12
+      )
+    clean_data <- clean_data %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), dplyr::funs(as.numeric)) %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), dplyr::funs(as.numeric)) %>%
+      dplyr::mutate(Week_End = as.Date(Week_End)) %>%
+      dplyr::mutate(Board_Code = as.character(Board_Code)) %>%
+      dplyr::mutate(Board_Name = as.character(Board_Name)) %>%
+      dplyr::mutate(Prov_Name = as.character(Prov_Name)) %>%
+      dplyr::mutate(Prov_Code = as.character(Prov_Code)) %>%
+      dplyr::mutate(Prov_Name = ifelse(startsWith(Prov_Name, "NHS"), sub("NHS","Board:",Prov_Name), Prov_Name)) %>%
+      dplyr::mutate(Prov_Name = ifelse(endsWith(Board_Name, "Scotland"), "Whole of Scotland", Prov_Name))
+  }
 
   clean_data
 }
@@ -307,10 +369,15 @@ get_date <- function(raw_data) {
 #'
 #' @return df with superfluous columns removed
 #'
-delete_extra_columns <- function(df) {
-  format_type_x <- nrow(df %>% dplyr::filter(grepl("A&E attendances less than 4 hours from arrival to admission",X__8))) == 1
-  if(!format_type_x) return(df)
-  df <- df %>% dplyr::select(-c(X__8,X__9,X__10,X__11))
+delete_extra_columns <- function(df, country = "England") {
+
+  if(country == "England"){
+    format_type_x <- nrow(df %>% dplyr::filter(grepl("A&E attendances less than 4 hours from arrival to admission",X__8))) == 1
+    if(!format_type_x) return(df)
+      df <- df %>% dplyr::select(-c(X__8,X__9,X__10,X__11))
+  }else{
+    df <- dplyr::select(df, -c(data_source))
+  }
   colnames(df) <- paste('X__',c(1:ncol(df)),sep='')
   df
 }
