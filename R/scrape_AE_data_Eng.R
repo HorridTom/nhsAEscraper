@@ -60,14 +60,10 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
     url_16_17 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/statistical-work-areasae-waiting-times-and-activityae-attendances-and-emergency-admissions-2016-17/"
     url_17_18 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2017-18/"
     url_18_19 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2018-19/"
-
     url_list <- list(url_15_16, url_16_17, url_17_18, url_18_19)
   }else if(is.null(url_list)){
     url_15_18 <- "http://www.isdscotland.org/Health-Topics/Emergency-Care/Publications/data-tables2017.asp?id"
-
     url_list <- list(url_15_18)
-    # url_vect <- unlist(lapply(url_list,function(x) getAEdata_page_urls_monthly(x)))
-    # url_vect
   }
   unlist(lapply(url_list,function(x) getAEdata_page_urls_monthly(x, country = country)))
 }
@@ -115,11 +111,7 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
     close(con)
 
     hosp_data_url_lines <- grep("ED-Weekly-Hospital-Data",html_lines)
-    board_data_url_lines <- grep("ED-Weekly-NHSBoard-Data",html_lines)
-    scot_data_url_lines <- grep("ED-Weekly-NHSScotland-Data",html_lines)
     NHSS_csvdata_lines_hosp <- html_lines[hosp_data_url_lines]
-    NHSS_csvdata_lines_board <- html_lines[board_data_url_lines]
-    NHSS_csvdata_lines_scot <- html_lines[scot_data_url_lines]
 
     urls_hosp <- substr(NHSS_csvdata_lines_hosp, regexpr("http",NHSS_csvdata_lines_hosp), regexpr(".csv",NHSS_csvdata_lines_hosp) + 3)
     urls <- urls_hosp[1]
