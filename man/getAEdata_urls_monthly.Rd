@@ -4,19 +4,25 @@
 \alias{getAEdata_urls_monthly}
 \title{getAEdata_urls_monthly}
 \usage{
-getAEdata_urls_monthly(url_list = NULL)
+getAEdata_urls_monthly(url_list = NULL, country = "England")
 }
 \arguments{
 \item{url_list}{list of urls (as strings) for the pages to scrape for data files}
+
+\item{country}{the country ("England" or "Scotland") whose AE data urls are to be
+returned}
 }
 \value{
-the urls for NHS England A&E data *.xls files from two pages
-yielding addresses for monthly data from June 2015 to (in principle) present.
+the urls for NHS England A&E data *.xls files, or NHS Scotland .csv files,
+from pages in url_list yielding addresses for data from June 2015 to
+(in principle) present.
 }
 \description{
 getAEdata_urls_monthly
 }
 \examples{
+\dontrun{
 urls <- getAEdata_urls_monthly()
 head(urls, n = 3)
+}
 }

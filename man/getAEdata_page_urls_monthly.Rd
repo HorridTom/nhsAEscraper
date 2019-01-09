@@ -4,21 +4,26 @@
 \alias{getAEdata_page_urls_monthly}
 \title{getAEdata_page_urls_monthly}
 \usage{
-getAEdata_page_urls_monthly(index_url)
+getAEdata_page_urls_monthly(index_url, country = "England")
 }
 \arguments{
 \item{index_url}{the url of the page to scrape data files from}
+
+\item{country}{the country ("England" or "Scotland") whose AE data urls are to be
+returned}
 }
 \value{
-character vector of the urls for NHS England A&E data *.xls files
-from one of the monthly data index pages
+character vector of the urls for NHS England A&E data *.xls files,
+or NHS Scotland .csv files from one of the index pages
 }
 \description{
 getAEdata_page_urls_monthly
 }
 \examples{
+\dontrun{
 urls <- getAEdata_page_urls_monthly(paste0('https://www.england.nhs.uk/statistics/',
 'statistical-work-areas/ae-waiting-times-and-activity/',
 'ae-attendances-and-emergency-admissions-2017-18/'))
 head(urls, n = 3)
+}
 }

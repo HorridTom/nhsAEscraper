@@ -5,19 +5,26 @@
 \title{load_AE_files}
 \usage{
 load_AE_files(directory = file.path("data-raw", "sitreps"),
-  use_filename_date = TRUE)
+  use_filename_date = TRUE, country = "England")
 }
 \arguments{
 \item{directory}{path of the directory to load files from}
+
+\item{use_filename_date}{if TRUE, take dates from the Excel file's name, if FALSE,
+take from the date specified inside the sheet (English data only)}
+
+\item{country}{the country ("England" or "Scotland") whose AE data is to be loaded}
 }
 \value{
 a list of data frames containing data loaded from files in directory
-whose name is of the form '\*AE-by-provider\*.xls'
+whose name is of the form '\*AE-by-provider\*.xls' for England data, or
+'\*-Data\*.csv' for Scotland
 }
 \description{
 load_AE_files
 }
 \examples{
+\dontrun{
 dataList <- load_AE_files(directory = file.path('nhsAEscraper','sitreps'))
-
+}
 }

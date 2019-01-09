@@ -17,7 +17,8 @@ the period (month) that this data pertains to
 get_date
 }
 \examples{
+\dontrun{
 dataList <- load_AE_files(directory = 'nhsAEscraper/sitreps/')
 get_date(dataList[[1]])
-
+}
 }

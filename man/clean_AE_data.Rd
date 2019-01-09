@@ -4,11 +4,14 @@
 \alias{clean_AE_data}
 \title{clean_AE_data}
 \usage{
-clean_AE_data(raw_data)
+clean_AE_data(raw_data, country = "England")
 }
 \arguments{
 \item{raw_data}{dataframe containing a NHS England A&E Monthly report
 with a standardised set of columns}
+
+\item{country}{the country ("England" or "Scotland") whose AE data is
+to be cleaned}
 }
 \value{
 the same data as raw_data, as a rectangular table with header removed,

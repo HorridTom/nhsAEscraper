@@ -4,11 +4,12 @@
 \alias{getAE_data}
 \title{getAE_data}
 \usage{
-getAE_data(update_data = TRUE, directory = file.path("data-raw", "sitreps"),
-  url_list = NULL, use_filename_date = FALSE)
+getAE_data(update_data = TRUE, directory = file.path("data-raw",
+  "sitreps"), url_list = NULL, use_filename_date = FALSE,
+  country = "England")
 }
 \arguments{
-\item{update_data}{whether to download files afresh from NHS England website (TRUE)
+\item{update_data}{whether to download files afresh from NHS England/Scotland website (TRUE)
 or use existing downloaded files (FALSE)}
 
 \item{directory}{directory to find existing downloaded files, and to save new downloads}
@@ -16,15 +17,20 @@ or use existing downloaded files (FALSE)}
 \item{url_list}{list of urls (as strings) for the pages to scrape for data files}
 
 \item{use_filename_date}{if TRUE, take dates from the Excel file's name, if FALSE,
-take from the date specified inside the sheet}
+take from the date specified inside the sheet (English data only)}
+
+\item{country}{the country ("England" or "Scotland") whose NHS A&E data is to be
+returned}
 }
 \value{
-A data frame containing all the monthly A&E data from the NHS England website.
+A data frame containing all the A&E data from the NHS England/Scotland website.
 }
 \description{
 getAE_data
 }
 \examples{
+\dontrun{
 AE_data <- getAE_data(directory = file.path('nhsAEscraper','sitreps'))
 str(AE_data)
+}
 }
