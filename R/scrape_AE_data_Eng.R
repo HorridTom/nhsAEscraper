@@ -214,7 +214,8 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
   dataList <- lapply(fileNames, function(x) {
     cat(file=stderr(), "Loading: ", x, "\n")
     if(country == "England"){
-      df <- readxl::read_excel(x, sheet = 1, col_names = FALSE)
+      df <- readxl::read_excel(x, sheet = 1, col_names = FALSE,
+                               .name_repair = ~ paste0("X__", seq_along(.x)))
     } else {
       # Scotland
       # Need to switch this for readr::read_csv(x) and refactor below
