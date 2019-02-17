@@ -424,7 +424,12 @@ delete_extra_columns <- function(df, country = "England") {
                                      grepl("A&E attendances less than 4 hours from arrival to admission",X__8)
                                      )) == 1
            if(!format_type_x) return(df)
+           if(nrow(df %>%
+                   dplyr::filter(
+                     grepl("Percentage in 4 hours or less \\(type 2\\)",X__18)
+                   )) == 1) {df <- df %>% dplyr::select(-c(X__18,X__19))}
            df <- df %>% dplyr::select(-c(X__8,X__9,X__10,X__11))
+
          },
          "Scotland" = {
            df <- dplyr::select(df, -c(data_source))
