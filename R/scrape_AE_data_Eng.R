@@ -298,9 +298,9 @@ clean_AE_data <- function(raw_data, country = "England") {
                                                        Perf_Typ1 == '-' ~ NA_character_,
                                                        Perf_Typ1 != 'N/A' ~ Perf_Typ1))
 
-           clean_data <- clean_data %>% dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), dplyr::funs(as.numeric)) %>%
-             dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), dplyr::funs(as.numeric)) %>%
-             dplyr::mutate_at(dplyr::vars(dplyr::starts_with("E_Adm_")), dplyr::funs(as.numeric))
+           clean_data <- clean_data %>% dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), as.numeric) %>%
+             dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), as.numeric) %>%
+             dplyr::mutate_at(dplyr::vars(dplyr::starts_with("E_Adm_")), as.numeric)
 
            clean_data <- clean_data %>% tibble::add_column(Month_Start = data_date, .after = 3)
 
