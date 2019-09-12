@@ -225,6 +225,12 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
     }
     cat(file=stderr(), "Success loaded: ", x, "\n")
     if(use_filename_date & country == "England") {
+
+      # Temporary fix for misnamed August 2019 file
+      if(!stringr::str_detect(stringr::str_match(x, '/(([0-9A-Za-z]|-)*)-AE-by-provider')[,2], "\\d")) {
+        dt_chr <- "August-2019"
+      }
+
       dt_chr <- stringr::str_replace(
         stringr::str_match(x, '/(([0-9A-Za-z]|-)*)-AE-by-provider')[,2], '-', ' '
         )
