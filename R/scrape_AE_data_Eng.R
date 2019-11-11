@@ -74,13 +74,13 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
              url_18_19 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2018-19/"
              url_19_20 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2019-20/"
              url_list <- list(url_15_16, url_16_17, url_17_18, url_18_19, url_19_20)
-            },
+           },
            "Scotland" = {
              url_15_18 <- "http://www.isdscotland.org/Health-Topics/Emergency-Care/Publications/data-tables2017.asp?id"
              url_list <- list(url_15_18)
-            },
-            stop("country should be either England or Scotland")
-           )
+           },
+           stop("country should be either England or Scotland")
+    )
   }
   unlist(lapply(url_list,function(x) getAEdata_page_urls_monthly(x, country = country)))
 }
@@ -127,6 +127,17 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
            ends <- regexpr(".xls",NHSE_xlsdata_lines) + 3
            urls <- substr(NHSE_xlsdata_lines, starts, ends)
 
+           #Extract urls that are in xlsx format
+           ends_xlsx <- regexpr(".xlsx", NHSE_xlsdata_lines) + 4
+           urls_xlsx_all <- substr(NHSE_xlsdata_lines, starts, ends_xlsx)
+           urls_xlsx_selection <- nchar(urls_xlsx_all) > 0
+           urls_xlsx <- urls_xlsx_all[urls_xlsx_selection]
+
+           #to remove duplicates of files ending in xlsx
+           urls <- urls[-urls_xlsx_selection]
+
+           urls <- c(urls, urls_xlsx)
+
          },
          "Scotland" = {
 
@@ -143,7 +154,7 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
          },
          stop("country should be either England or Scotland")
-         )
+  )
 
   return(urls)
 }
@@ -175,7 +186,9 @@ download_AE_files <- function(file_urls, directory) {
   f_name_regex <- '/([^/]+)$'
 
   lapply(file_urls, function(x) {
+
     fn <- file.path(directory, stringr::str_match(x, f_name_regex)[,2])
+
     httr::GET(x, httr::write_disk(fn, overwrite = TRUE))
   })
 
@@ -204,6 +217,8 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
   switch(country,
          "England" = {
            fileNames <- Sys.glob(file.path(directory,'*AE-by-provider*.xls'))
+           fileNames_xlsx <- Sys.glob(file.path(directory,'*AE-by-provider*.xlsx')) ##
+           fileNames <- c(fileNames, fileNames_xlsx) ##
          },
          "Scotland" = {
            fileNames <- Sys.glob(file.path(directory,'*-Data*.csv'))
@@ -233,13 +248,14 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
 
       dt_chr <- stringr::str_replace(
         stringr::str_match(x, '/(([0-9A-Za-z]|-)*)-AE-by-provider')[,2], '-', ' '
-        )
+      )
       df <- df %>% dplyr::mutate(X__2 = ifelse(X__1 == 'Period:', dt_chr, X__2))
     }
     df
-    })
+  })
 
   dataList
+
 }
 
 # Tell codetools not to worry about no visible binding for default imported data column names
@@ -386,8 +402,8 @@ check_format <- function(raw_data, verbose = FALSE) {
   if (verbose) {
     format_status
   } else {
-      all(format_status)
-    }
+    all(format_status)
+  }
 }
 
 
@@ -429,7 +445,7 @@ delete_extra_columns <- function(df, country = "England") {
            format_type_x <- nrow(df %>%
                                    dplyr::filter(
                                      grepl("A&E attendances less than 4 hours from arrival to admission",X__8)
-                                     )) == 1
+                                   )) == 1
            if(!format_type_x) return(df)
            if(nrow(df %>%
                    dplyr::filter(
