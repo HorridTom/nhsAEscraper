@@ -134,7 +134,7 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
            urls_xlsx <- urls_xlsx_all[urls_xlsx_selection]
 
            #to remove duplicates of files ending in xlsx
-           urls <- urls[-urls_xlsx_selection]
+           urls <- urls[!urls_xlsx_selection]
 
            urls <- c(urls, urls_xlsx)
 
@@ -156,7 +156,8 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
          stop("country should be either England or Scotland")
   )
 
-  return(urls)
+   return(urls)
+
 }
 
 
