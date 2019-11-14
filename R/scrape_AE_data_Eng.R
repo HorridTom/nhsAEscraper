@@ -119,7 +119,7 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
            #Look for lines that contain the signature part of the url and the signature text
            data_url_lines <- grep("^(?=.*xls)((?!Quarter).)*$",html_lines, perl=TRUE)
-           xlsdata_url_lines <- grep("AE-by-provider",html_lines[data_url_lines])
+           xlsdata_url_lines <- grep("by-provider",html_lines[data_url_lines])
            NHSE_xlsdata_lines <- html_lines[data_url_lines][xlsdata_url_lines]
 
            #Extract urls from html lines
