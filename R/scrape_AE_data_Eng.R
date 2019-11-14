@@ -217,8 +217,8 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
 
   switch(country,
          "England" = {
-           fileNames <- Sys.glob(file.path(directory,'*AE-by-provider*.xls'))
-           fileNames_xlsx <- Sys.glob(file.path(directory,'*AE-by-provider*.xlsx')) ##
+           fileNames <- Sys.glob(file.path(directory,'*by-provider*.xls'))
+           fileNames_xlsx <- Sys.glob(file.path(directory,'*by-provider*.xlsx')) ##
            fileNames <- c(fileNames, fileNames_xlsx) ##
          },
          "Scotland" = {
