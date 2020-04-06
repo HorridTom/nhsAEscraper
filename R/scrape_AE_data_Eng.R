@@ -76,8 +76,9 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
              url_list <- list(url_15_16, url_16_17, url_17_18, url_18_19, url_19_20)
            },
            "Scotland" = {
-             url_15_18 <- "http://www.isdscotland.org/Health-Topics/Emergency-Care/Publications/data-tables2017.asp?id"
-             #url_15_18 <- "https://beta.isdscotland.org/find-publications-and-data/health-services/hospital-care/nhs-performs-weekly-update-of-emergency-department-activity-and-waiting-time-statistics/"
+             #old source
+             #url_15_18 <- "http://www.isdscotland.org/Health-Topics/Emergency-Care/Publications/data-tables2017.asp?id"
+             url_15_18 <- "https://beta.isdscotland.org/find-publications-and-data/health-services/hospital-care/nhs-performs-weekly-update-of-emergency-department-activity-and-waiting-time-statistics/"
              url_list <- list(url_15_18)
            },
            stop("country should be either England or Scotland")
@@ -142,17 +143,15 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
          },
          "Scotland" = {
 
-           #n=3350 argument stops it from reading last line of webpage which has a error in it thus avoiding a warning message.
-           html_lines <- readLines(con, n = 3350)
-           #html_lines <- readLines(con)
+           #n=610 argument stops it from reading last line of webpage which has a error in it thus avoiding a warning message.
+           html_lines <- readLines(con, n = 610)
 
            close(con)
 
-           hosp_data_url_lines <- grep("ED-Weekly-Hospital-Data",html_lines)
-           #hosp_data_url_lines <- grep("ed-weekly-hospital-data",html_lines)
+           hosp_data_url_lines <- grep("ed-weekly-hospital-data",html_lines)
            NHSS_csvdata_lines_hosp <- html_lines[hosp_data_url_lines]
 
-           urls_hosp <- substr(NHSS_csvdata_lines_hosp, regexpr("http",NHSS_csvdata_lines_hosp), regexpr(".csv",NHSS_csvdata_lines_hosp) + 3)
+           urls_hosp <- paste0("https://beta.isdscotland.org",substr(NHSS_csvdata_lines_hosp, regexpr("/",NHSS_csvdata_lines_hosp), regexpr(".csv",NHSS_csvdata_lines_hosp) + 3))
            urls <- urls_hosp[1]
 
          },
@@ -225,7 +224,7 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
            fileNames <- c(fileNames, fileNames_xlsx) ##
          },
          "Scotland" = {
-           fileNames <- Sys.glob(file.path(directory,'*-Data*.csv'))
+           fileNames <- Sys.glob(file.path(directory,'*-data*.csv'))
          },
          stop("country should be either England or Scotland")
   )
