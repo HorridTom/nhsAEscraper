@@ -77,6 +77,7 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
            },
            "Scotland" = {
              url_15_18 <- "http://www.isdscotland.org/Health-Topics/Emergency-Care/Publications/data-tables2017.asp?id"
+             #url_15_18 <- "https://beta.isdscotland.org/find-publications-and-data/health-services/hospital-care/nhs-performs-weekly-update-of-emergency-department-activity-and-waiting-time-statistics/"
              url_list <- list(url_15_18)
            },
            stop("country should be either England or Scotland")
@@ -143,10 +144,12 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
            #n=3350 argument stops it from reading last line of webpage which has a error in it thus avoiding a warning message.
            html_lines <- readLines(con, n = 3350)
+           #html_lines <- readLines(con)
 
            close(con)
 
            hosp_data_url_lines <- grep("ED-Weekly-Hospital-Data",html_lines)
+           #hosp_data_url_lines <- grep("ed-weekly-hospital-data",html_lines)
            NHSS_csvdata_lines_hosp <- html_lines[hosp_data_url_lines]
 
            urls_hosp <- substr(NHSS_csvdata_lines_hosp, regexpr("http",NHSS_csvdata_lines_hosp), regexpr(".csv",NHSS_csvdata_lines_hosp) + 3)
@@ -347,8 +350,8 @@ clean_AE_data <- function(raw_data, country = "England") {
                            Perf_12hr = X__12
              )
            clean_data <- clean_data %>%
-             dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), dplyr::funs(as.numeric)) %>%
-             dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), dplyr::funs(as.numeric)) %>%
+             dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), list(as.numeric)) %>%
+             dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), list(as.numeric)) %>%
              dplyr::mutate(Week_End = as.Date(Week_End, format = "%Y-%m-%d")) %>%
              dplyr::mutate(Board_Code = as.character(Board_Code)) %>%
              dplyr::mutate(Board_Name = as.character(Board_Name)) %>%
