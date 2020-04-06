@@ -76,8 +76,6 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
              url_list <- list(url_15_16, url_16_17, url_17_18, url_18_19, url_19_20)
            },
            "Scotland" = {
-             #old source
-             #url_15_18 <- "http://www.isdscotland.org/Health-Topics/Emergency-Care/Publications/data-tables2017.asp?id"
              url_15_18 <- "https://beta.isdscotland.org/find-publications-and-data/health-services/hospital-care/nhs-performs-weekly-update-of-emergency-department-activity-and-waiting-time-statistics/"
              url_list <- list(url_15_18)
            },
@@ -143,8 +141,7 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
          },
          "Scotland" = {
 
-           #n=610 argument stops it from reading last line of webpage which has a error in it thus avoiding a warning message.
-           html_lines <- readLines(con, n = 610)
+           html_lines <- readLines(con)
 
            close(con)
 
@@ -220,8 +217,8 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
   switch(country,
          "England" = {
            fileNames <- Sys.glob(file.path(directory,'*by-provider*.xls'))
-           fileNames_xlsx <- Sys.glob(file.path(directory,'*by-provider*.xlsx')) ##
-           fileNames <- c(fileNames, fileNames_xlsx) ##
+           fileNames_xlsx <- Sys.glob(file.path(directory,'*by-provider*.xlsx'))
+           fileNames <- c(fileNames, fileNames_xlsx)
          },
          "Scotland" = {
            fileNames <- Sys.glob(file.path(directory,'*-data*.csv'))
