@@ -29,7 +29,7 @@ getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sit
   }
   rawDataList <- load_AE_files(directory = directory, use_filename_date = use_filename_date, country = country)
 
-  rawDataList <- lapply(rawDataList, delete_extra_columns, country = country)
+ rawDataList <- lapply(rawDataList, delete_extra_columns, country = country)
 
   if(country == "England"){
     if(!all(unlist(lapply(rawDataList, check_format)))) {
@@ -232,11 +232,16 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
     if(country == "England"){
       df <- readxl::read_excel(x, sheet = 1, col_names = FALSE,
                                .name_repair = ~ paste0("X__", seq_along(.x)))
+      df <- df %>%
+        dplyr::mutate(SourceFile = x)
     } else {
       # Scotland
       # Need to switch this for readr::read_csv(x) and refactor below
       # to remove unecessary column type conversions
       df <- utils::read.csv(x)
+
+      df <- df %>%
+        dplyr::mutate(SourceFile = x)
     }
     cat(file=stderr(), "Success loaded: ", x, "\n")
     if(use_filename_date & country == "England") {
@@ -287,7 +292,7 @@ clean_AE_data <- function(raw_data, country = "England") {
 
            clean_data <- raw_data %>% dplyr::filter(grepl("^[A-Z0-9]+$",X__1))
 
-           clean_data <- clean_data %>% dplyr::select(X__1:X__21) %>%
+           clean_data <- clean_data %>% dplyr::select(X__1:X__21,SourceFile) %>%
              dplyr::rename(Prov_Code = X__1,
                            Region = X__2,
                            Prov_Name = X__3,
@@ -308,7 +313,8 @@ clean_AE_data <- function(raw_data, country = "England") {
                            E_Adm_Not_ED = X__18,
                            E_Adm_All = X__19,
                            E_Adm_4hBr_D = X__20,
-                           E_Adm_12hBr_D = X__21)
+                           E_Adm_12hBr_D = X__21,
+                           SourceFile = SourceFile)
 
 
            # Explicitly replace Excel 'N/A' with NA_character_
@@ -331,7 +337,7 @@ clean_AE_data <- function(raw_data, country = "England") {
          "Scotland" = {
            clean_data <- raw_data
 
-           clean_data <- clean_data %>% dplyr::select(X__1:X__12) %>%
+           clean_data <- clean_data %>% dplyr::select(X__1:X__12,SourceFile) %>%
              dplyr::rename(Week_End = X__1,
                            Board_Code = X__2,
                            Board_Name = X__3,
@@ -343,7 +349,8 @@ clean_AE_data <- function(raw_data, country = "England") {
                            Att_8hr_Br = X__9,
                            Perf_8hr = X__10,
                            Att_12hr_Br = X__11,
-                           Perf_12hr = X__12
+                           Perf_12hr = X__12,
+                           SourceFile = SourceFile
              )
            clean_data <- clean_data %>%
              dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), list(as.numeric)) %>%
@@ -459,6 +466,6 @@ delete_extra_columns <- function(df, country = "England") {
          },
          stop("country should be either England or Scotland")
   )
-  colnames(df) <- paste('X__',c(1:ncol(df)),sep='')
+  colnames(df) <- c(paste('X__',c(1:(ncol(df)-1)),sep=''),"SourceFile")
   df
 }
