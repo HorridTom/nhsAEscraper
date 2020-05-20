@@ -233,7 +233,8 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
       df <- readxl::read_excel(x, sheet = 1, col_names = FALSE,
                                .name_repair = ~ paste0("X__", seq_along(.x)))
       df <- df %>%
-        dplyr::mutate(SourceFile = x)
+        dplyr::mutate(SourceFile = x) %>%
+        dplyr::mutate(hashSourceFileContents = openssl::md5(x))
     } else {
       # Scotland
       # Need to switch this for readr::read_csv(x) and refactor below
@@ -241,7 +242,8 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
       df <- utils::read.csv(x)
 
       df <- df %>%
-        dplyr::mutate(SourceFile = x)
+        dplyr::mutate(SourceFile = x) %>%
+        dplyr::mutate(hashSourceFileContents = openssl::md5(x))
     }
     cat(file=stderr(), "Success loaded: ", x, "\n")
     if(use_filename_date & country == "England") {
@@ -292,7 +294,7 @@ clean_AE_data <- function(raw_data, country = "England") {
 
            clean_data <- raw_data %>% dplyr::filter(grepl("^[A-Z0-9]+$",X__1))
 
-           clean_data <- clean_data %>% dplyr::select(X__1:X__21,SourceFile) %>%
+           clean_data <- clean_data %>% dplyr::select(X__1:X__21,SourceFile,hashSourceFileContents) %>%
              dplyr::rename(Prov_Code = X__1,
                            Region = X__2,
                            Prov_Name = X__3,
@@ -314,7 +316,8 @@ clean_AE_data <- function(raw_data, country = "England") {
                            E_Adm_All = X__19,
                            E_Adm_4hBr_D = X__20,
                            E_Adm_12hBr_D = X__21,
-                           SourceFile = SourceFile)
+                           SourceFile = SourceFile,
+                           hashSourceFileContents = hashSourceFileContents)
 
 
            # Explicitly replace Excel 'N/A' with NA_character_
@@ -337,7 +340,7 @@ clean_AE_data <- function(raw_data, country = "England") {
          "Scotland" = {
            clean_data <- raw_data
 
-           clean_data <- clean_data %>% dplyr::select(X__1:X__12,SourceFile) %>%
+           clean_data <- clean_data %>% dplyr::select(X__1:X__12,SourceFile,hashSourceFileContents) %>%
              dplyr::rename(Week_End = X__1,
                            Board_Code = X__2,
                            Board_Name = X__3,
@@ -350,8 +353,9 @@ clean_AE_data <- function(raw_data, country = "England") {
                            Perf_8hr = X__10,
                            Att_12hr_Br = X__11,
                            Perf_12hr = X__12,
-                           SourceFile = SourceFile
-             )
+                           SourceFile = SourceFile,
+                           hashSourceFileContents = hashSourceFileContents
+                           )
            clean_data <- clean_data %>%
              dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), list(as.numeric)) %>%
              dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), list(as.numeric)) %>%
@@ -466,6 +470,6 @@ delete_extra_columns <- function(df, country = "England") {
          },
          stop("country should be either England or Scotland")
   )
-  colnames(df) <- c(paste('X__',c(1:(ncol(df)-1)),sep=''),"SourceFile")
+  colnames(df) <- c(paste('X__',c(1:(ncol(df)-2)),sep=''),"SourceFile","hashSourceFileContents")
   df
 }
