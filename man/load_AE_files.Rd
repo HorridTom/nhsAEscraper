@@ -4,8 +4,11 @@
 \alias{load_AE_files}
 \title{load_AE_files}
 \usage{
-load_AE_files(directory = file.path("data-raw", "sitreps"),
-  use_filename_date = TRUE, country = "England")
+load_AE_files(
+  directory = file.path("data-raw", "sitreps"),
+  use_filename_date = TRUE,
+  country = "England"
+)
 }
 \arguments{
 \item{directory}{path of the directory to load files from}
