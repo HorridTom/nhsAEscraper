@@ -120,7 +120,7 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
            #Look for lines that contain the signature part of the url and the signature text
            data_url_lines <- grep("^(?=.*xls)((?!Quarter).)*$",html_lines, perl=TRUE)
-           xlsdata_url_lines <- grep("by-provider",html_lines[data_url_lines])
+           xlsdata_url_lines <- grep("AE",html_lines[data_url_lines])
            NHSE_xlsdata_lines <- html_lines[data_url_lines][xlsdata_url_lines]
 
            #Extract urls from html lines
@@ -137,7 +137,9 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
            #to remove duplicates of files ending in xlsx
            urls <- urls[!urls_xlsx_selection]
 
-           urls <- c(urls, urls_xlsx)
+           urls <- c(urls, urls_xlsx,
+                     "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/Monthly-October-2019-revised-210720-qm5hG.xls",
+                     "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/Monthly-September-2019-revised-210720-L48uy.xls")
 
          },
          "Scotland" = {
@@ -217,9 +219,12 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
 
   switch(country,
          "England" = {
-           fileNames <- Sys.glob(file.path(directory,'*by-provider*.xls'))
-           fileNames_xlsx <- Sys.glob(file.path(directory,'*by-provider*.xlsx'))
-           fileNames <- c(fileNames, fileNames_xlsx)
+           fileNames <- Sys.glob(file.path(directory,'*AE*.xls'))
+           fileNames_xlsx <- Sys.glob(file.path(directory,'*AE*.xlsx'))
+           fileNames_extras <- c(Sys.glob(file.path(directory,"Monthly-October-2019-revised-210720-qm5hG.xls")),
+                                 Sys.glob(file.path(directory,"Monthly-September-2019-revised-210720-L48uy.xls")))
+           fileNames <- c(fileNames, fileNames_xlsx, fileNames_extras)
+           fileNames <- fileNames[-grep("Adjusted",fileNames)]
          },
          "Scotland" = {
            fileNames <- Sys.glob(file.path(directory,'*-data*.csv'))
