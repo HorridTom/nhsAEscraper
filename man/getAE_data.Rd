@@ -4,9 +4,13 @@
 \alias{getAE_data}
 \title{getAE_data}
 \usage{
-getAE_data(update_data = TRUE, directory = file.path("data-raw",
-  "sitreps"), url_list = NULL, use_filename_date = FALSE,
-  country = "England")
+getAE_data(
+  update_data = TRUE,
+  directory = file.path("data-raw", "sitreps"),
+  url_list = NULL,
+  use_filename_date = FALSE,
+  country = "England"
+)
 }
 \arguments{
 \item{update_data}{whether to download files afresh from NHS England/Scotland website (TRUE)
