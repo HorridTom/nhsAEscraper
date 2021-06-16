@@ -225,7 +225,6 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
            fileNames_extras <- c(Sys.glob(file.path(directory,"Monthly-October-2019-revised-210720-qm5hG.xls")),
                                  Sys.glob(file.path(directory,"Monthly-September-2019-revised-210720-L48uy.xls")))
            fileNames <- c(fileNames, fileNames_xlsx, fileNames_extras)
-           fileNames <- fileNames[-grep("Adjusted",fileNames)]
          },
          "Scotland" = {
            fileNames <- Sys.glob(file.path(directory,'*-data*.csv'))
