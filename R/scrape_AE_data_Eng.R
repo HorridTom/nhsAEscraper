@@ -152,7 +152,7 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
            hosp_data_url_lines <- grep("ed-weekly-hospital-data",html_lines)
            NHSS_csvdata_lines_hosp <- html_lines[hosp_data_url_lines]
 
-           urls_hosp <- paste0("https://beta.isdscotland.org",substr(NHSS_csvdata_lines_hosp, regexpr("/",NHSS_csvdata_lines_hosp), regexpr(".csv",NHSS_csvdata_lines_hosp) + 3))
+           urls_hosp <- paste0("https://publichealthscotland.scot/",substr(NHSS_csvdata_lines_hosp, regexpr("/",NHSS_csvdata_lines_hosp), regexpr(".csv",NHSS_csvdata_lines_hosp) + 3))
            urls <- urls_hosp[1]
 
          },
