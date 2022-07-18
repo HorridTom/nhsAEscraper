@@ -472,7 +472,7 @@ delete_extra_columns <- function(df, country = "England") {
 
          },
          "Scotland" = {
-           df <- dplyr::select(df, -c(data_source))
+           #df <- dplyr::select(df, -c(data_source))
          },
          stop("country should be either England or Scotland")
   )
