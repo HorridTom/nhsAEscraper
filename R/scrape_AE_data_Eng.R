@@ -75,7 +75,8 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
              url_19_20 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2019-20/"
              url_20_21 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2020-21/"
              url_21_22 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2021-22/"
-             url_list <- list(url_15_16, url_16_17, url_17_18, url_18_19, url_19_20, url_20_21, url_21_22)
+             url_22_23 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2022-23/"
+             url_list <- list(url_15_16, url_16_17, url_17_18, url_18_19, url_19_20, url_20_21, url_21_22, url_22_23)
            },
            "Scotland" = {
              url_15_18 <- "https://beta.isdscotland.org/find-publications-and-data/health-services/hospital-care/nhs-performs-weekly-update-of-emergency-department-activity-and-waiting-time-statistics/"
@@ -472,7 +473,7 @@ delete_extra_columns <- function(df, country = "England") {
 
          },
          "Scotland" = {
-           df <- dplyr::select(df, -c(data_source))
+           #df <- dplyr::select(df, -c(data_source))
          },
          stop("country should be either England or Scotland")
   )
