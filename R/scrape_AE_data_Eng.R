@@ -76,7 +76,15 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
              url_20_21 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2020-21/"
              url_21_22 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2021-22/"
              url_22_23 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2022-23/"
-             url_list <- list(url_15_16, url_16_17, url_17_18, url_18_19, url_19_20, url_20_21, url_21_22, url_22_23)
+             url_list <- list(url_15_16,
+                              url_16_17,
+                              url_17_18,
+                              url_18_19,
+                              url_19_20,
+                              url_20_21,
+                              url_21_22,
+                              url_22_23
+                              )
            },
            "Scotland" = {
              url_15_18 <- "https://beta.isdscotland.org/find-publications-and-data/health-services/hospital-care/nhs-performs-weekly-update-of-emergency-department-activity-and-waiting-time-statistics/"
@@ -141,9 +149,14 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
            urls <- c(urls, urls_xlsx,
                      "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/Monthly-October-2019-revised-210720-qm5hG.xls",
-                     "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/Monthly-September-2019-revised-210720-L48uy.xls")
+                     "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/Monthly-September-2019-revised-210720-L48uy.xls"
+                     )
+
+           urls_eng <- urls
+           assign("urls_eng", urls_eng, envir = .GlobalEnv)
 
          },
+
          "Scotland" = {
 
            html_lines <- readLines(con)
@@ -237,8 +250,17 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
   dataList <- lapply(fileNames, function(x) {
     cat(file=stderr(), "Loading: ", x, "\n")
     if(country == "England"){
-      df <- readxl::read_excel(x, sheet = 1, col_names = FALSE,
-                               .name_repair = ~ paste0("X__", seq_along(.x)))
+
+      #2023 file so far have the data in the second tab
+      if(grepl("2023", x)){
+        df <- readxl::read_excel(x, sheet = "Provider Level Data", col_names = FALSE,
+                                 .name_repair = ~ paste0("X__", seq_along(.x)))
+      }else{
+        df <- readxl::read_excel(x, sheet = 1, col_names = FALSE,
+                                 .name_repair = ~ paste0("X__", seq_along(.x)))
+      }
+
+
       df <- df %>%
         dplyr::mutate(SourceFile = x) %>%
         dplyr::mutate(hashSourceFileContents = openssl::md5(x))
