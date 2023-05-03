@@ -41,8 +41,6 @@ getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sit
 
   AE_data <- dplyr::bind_rows(cleanDataList)
 
-  AE_data
-
 }
 
 
