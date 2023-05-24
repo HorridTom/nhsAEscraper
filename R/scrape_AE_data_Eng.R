@@ -28,8 +28,7 @@ getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sit
     download_AE_files(urls, directory = directory)
   }
   rawDataList <- load_AE_files(directory = directory, use_filename_date = use_filename_date, country = country)
-
- rawDataList <- lapply(rawDataList, delete_extra_columns, country = country)
+  rawDataList <- lapply(rawDataList, delete_extra_columns, country = country)
 
   if(country == "England"){
     if(!all(unlist(lapply(rawDataList, check_format)))) {
@@ -250,7 +249,7 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
     if(country == "England"){
 
       #2023 file so far have the data in the second tab
-      if(grepl("2023", x)){
+      if(grepl("2023", x) | grepl("2022", x)){
         df <- readxl::read_excel(x, sheet = "Provider Level Data", col_names = FALSE,
                                  .name_repair = ~ paste0("X__", seq_along(.x)))
       }else{
@@ -435,7 +434,6 @@ check_format <- function(raw_data, verbose = FALSE) {
   format_status[4] <- nrow(raw_data %>% dplyr::filter(X__4 == "A&E attendances")) == 1
   format_status[5] <- nrow(raw_data %>% dplyr::filter(grepl("A&E attendances > 4 hours from arrival to admission",X__8)|grepl("A&E attendances greater than 4 hours from arrival to admission",X__8))) == 1
   format_status[6] <- nrow(raw_data %>% dplyr::filter(X__14 == "Emergency Admissions")) == 1
-
 
   if (verbose) {
     format_status
