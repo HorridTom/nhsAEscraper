@@ -81,7 +81,8 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
                               url_19_20,
                               url_20_21,
                               url_21_22,
-                              url_22_23
+                              url_22_23,
+                              url_23_24
                               )
            },
            "Scotland" = {
