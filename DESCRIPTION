@@ -1,7 +1,7 @@
 Package: nhsAEscraper
 Type: Package
 Title: Download and collate Accident and Emergency data from NHS England's website
-Version: 0.0.0.9011
+Version: 0.0.0.9012
 Authors@R: as.person(c(
     "Thomas Woodcock <thomas.woodcock99@imperial.ac.uk> [aut, cre]",
     "Imogen Connor-Helleur <imogen.connor-helleur@imperial.ac.uk> [aut]"
@@ -16,12 +16,12 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.0
 Suggests: testthat
-Imports: dplyr (>= 0.7.4),
-    stringr (>= 1.3.0),
-    readxl (>= 1.2.0),
-    magrittr (>= 1.5),
-    tibble (>= 2.0.0),
-    lubridate (>= 1.7.3),
-    zoo (>= 1.8-1),
+Imports: dplyr (>= 1.1.3),
+    stringr (>= 1.4.0),
+    readxl (>= 1.3.1),
+    magrittr (>= 2.0.3),
+    tibble (>= 3.2.1),
+    lubridate (>= 1.7.4),
+    zoo (>= 1.8-6),
     compare (>= 0.2-6),
-    httr (>= 1.3.1)
+    httr (>= 1.4.0)

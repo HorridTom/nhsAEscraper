@@ -86,7 +86,7 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
                               )
            },
            "Scotland" = {
-             url_15_18 <- "https://beta.isdscotland.org/find-publications-and-data/health-services/hospital-care/nhs-performs-weekly-update-of-emergency-department-activity-and-waiting-time-statistics/"
+             url_15_18 <- "https://publichealthscotland.scot/data-and-intelligence/ae-activity/"
              url_list <- list(url_15_18)
            },
            stop("country should be either England or Scotland")
@@ -162,10 +162,13 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
            close(con)
 
-           hosp_data_url_lines <- grep("ed-weekly-hospital-data",html_lines)
+           hosp_data_url_lines <- grep("ed-weekly-attendance-and-waiting-times-data",html_lines)
            NHSS_csvdata_lines_hosp <- html_lines[hosp_data_url_lines]
 
-           urls_hosp <- paste0("https://publichealthscotland.scot/",substr(NHSS_csvdata_lines_hosp, regexpr("/",NHSS_csvdata_lines_hosp), regexpr(".csv",NHSS_csvdata_lines_hosp) + 3))
+           urls_hosp <- paste0("https://publichealthscotland.scot/",
+                               substr(NHSS_csvdata_lines_hosp,
+                                      regexpr("/",NHSS_csvdata_lines_hosp),
+                                      regexpr(".csv",NHSS_csvdata_lines_hosp) + 3))
            urls <- urls_hosp[1]
 
          },
@@ -368,19 +371,21 @@ clean_AE_data <- function(raw_data, country = "England") {
          "Scotland" = {
            clean_data <- raw_data
 
-           clean_data <- clean_data %>% dplyr::select(X__1:X__12,SourceFile,hashSourceFileContents) %>%
+           clean_data <- clean_data %>% dplyr::select(X__1:X__14,SourceFile,hashSourceFileContents) %>%
              dplyr::rename(Week_End = X__1,
                            Board_Code = X__2,
                            Board_Name = X__3,
                            Prov_Code = X__4,
                            Prov_Name = X__5,
-                           Att_All = X__6,
-                           Att_4hr_Br = X__7,
-                           Perf_4hr = X__8,
-                           Att_8hr_Br = X__9,
-                           Perf_8hr = X__10,
-                           Att_12hr_Br = X__11,
-                           Perf_12hr = X__12,
+                           Dept_Type = X__6,
+                           Att_All = X__7,
+                           Att_4hr_No_Br = X__8,
+                           Att_4hr_Br = X__9,
+                           Perf_4hr = X__10,
+                           Att_8hr_Br = X__11,
+                           Perf_8hr = X__12,
+                           Att_12hr_Br = X__13,
+                           Perf_12hr = X__14,
                            SourceFile = SourceFile,
                            hashSourceFileContents = hashSourceFileContents
                            )
