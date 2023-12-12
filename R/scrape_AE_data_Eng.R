@@ -388,7 +388,11 @@ clean_AE_data <- function(raw_data, country = "England") {
                            Perf_12hr = X__14,
                            SourceFile = SourceFile,
                            hashSourceFileContents = hashSourceFileContents
-                           )
+                           ) %>%
+             dplyr::select(-Dept_Type,
+                    -Att_4hr_No_Br)
+
+
            clean_data <- clean_data %>%
              dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), list(as.numeric)) %>%
              dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), list(as.numeric)) %>%
