@@ -254,7 +254,7 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
     if(country == "England"){
 
       #2023 file so far have the data in the second tab
-      if(grepl("2023", x) | grepl("2022", x)){
+      if(grepl("2024", x) | grepl("2023", x) | grepl("2022", x)){
         df <- readxl::read_excel(x, sheet = "Provider Level Data", col_names = FALSE,
                                  .name_repair = ~ paste0("X__", seq_along(.x)))
       }else{
