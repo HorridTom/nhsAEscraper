@@ -74,6 +74,7 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
              url_21_22 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2021-22/"
              url_22_23 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2022-23/"
              url_23_24 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2023-24/"
+             url_24_25 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2024-25/"
              url_list <- list(url_15_16,
                               url_16_17,
                               url_17_18,
@@ -82,7 +83,8 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
                               url_20_21,
                               url_21_22,
                               url_22_23,
-                              url_23_24
+                              url_23_24,
+                              url_24_25
                               )
            },
            "Scotland" = {
