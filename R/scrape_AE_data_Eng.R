@@ -27,8 +27,19 @@ getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sit
     urls <- getAEdata_urls_monthly(url_list = url_list, country = country)
     download_AE_files(urls, directory = directory)
   }
-  rawDataList <- load_AE_files(directory = directory, use_filename_date = use_filename_date, country = country)
-  rawDataList <- lapply(rawDataList, delete_extra_columns, country = country)
+
+  rawDataList <- load_AE_files(directory = directory,
+                               use_filename_date = use_filename_date,
+                               country = country)
+
+  if(country == "Scotland") {
+    rawDataList <- join_site_info_scotland(rawDataList = rawDataList,
+                                           directory = directory)
+  }
+
+  rawDataList <- lapply(rawDataList,
+                        delete_extra_columns,
+                        country = country)
 
   if(country == "England"){
     if(!all(unlist(lapply(rawDataList, check_format)))) {
@@ -36,7 +47,9 @@ getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sit
     }
   }
 
-  cleanDataList <- lapply(rawDataList, clean_AE_data, country = country)
+  cleanDataList <- lapply(rawDataList,
+                          clean_AE_data,
+                          country = country)
 
   AE_data <- dplyr::bind_rows(cleanDataList)
 
@@ -89,7 +102,8 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
            },
            "Scotland" = {
              url_15_18 <- "https://publichealthscotland.scot/data-and-intelligence/ae-activity/"
-             url_list <- list(url_15_18)
+             url_phs <- "https://www.opendata.nhs.scot/dataset/weekly-accident-and-emergency-activity-and-waiting-times/"
+             url_list <- list(url_phs)
            },
            stop("country should be either England or Scotland")
     )
@@ -164,12 +178,16 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
            close(con)
 
-           hosp_data_url_lines <- grep("ed-weekly-attendance-and-waiting-times-data",html_lines)
+           hosp_data_url_lines <- grep("weekly_ae_activity",html_lines)
            NHSS_csvdata_lines_hosp <- html_lines[hosp_data_url_lines]
 
-           urls_hosp <- paste0("https://publichealthscotland.scot/",
+           # csv_filename <- substr(NHSS_csvdata_lines_hosp,
+           #                        regexpr("download/",NHSS_csvdata_lines_hosp) + 9,
+           #                        regexpr(".csv",NHSS_csvdata_lines_hosp) + 3)
+
+           urls_hosp <- paste0(
                                substr(NHSS_csvdata_lines_hosp,
-                                      regexpr("/",NHSS_csvdata_lines_hosp),
+                                      regexpr("https://",NHSS_csvdata_lines_hosp),
                                       regexpr(".csv",NHSS_csvdata_lines_hosp) + 3))
            urls <- urls_hosp[1]
 
@@ -207,12 +225,14 @@ download_AE_files <- function(file_urls, directory) {
 
   f_name_regex <- '/([^/]+)$'
 
-  lapply(file_urls, function(x) {
+  rawDataList <- lapply(file_urls, function(x) {
 
     fn <- file.path(directory, stringr::str_match(x, f_name_regex)[,2])
 
     httr::GET(x, httr::write_disk(fn, overwrite = TRUE))
   })
+
+  return(rawDataList)
 
 }
 
@@ -245,7 +265,7 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
            fileNames <- c(fileNames, fileNames_xlsx, fileNames_extras)
          },
          "Scotland" = {
-           fileNames <- Sys.glob(file.path(directory,'*-data*.csv'))
+           fileNames <- Sys.glob(file.path(directory,'*_activity*.csv'))
          },
          stop("country should be either England or Scotland")
   )
@@ -278,6 +298,7 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
         dplyr::mutate(SourceFile = x) %>%
         dplyr::mutate(hashSourceFileContents = openssl::md5(x))
     }
+
     cat(file=stderr(), "Success loaded: ", x, "\n")
     if(use_filename_date & country == "England") {
 
@@ -373,21 +394,21 @@ clean_AE_data <- function(raw_data, country = "England") {
          "Scotland" = {
            clean_data <- raw_data
 
-           clean_data <- clean_data %>% dplyr::select(X__1:X__14,SourceFile,hashSourceFileContents) %>%
-             dplyr::rename(Week_End = X__1,
-                           Board_Code = X__2,
-                           Board_Name = X__3,
-                           Prov_Code = X__4,
-                           Prov_Name = X__5,
-                           Dept_Type = X__6,
-                           Att_All = X__7,
-                           Att_4hr_No_Br = X__8,
-                           Att_4hr_Br = X__9,
-                           Perf_4hr = X__10,
-                           Att_8hr_Br = X__11,
-                           Perf_8hr = X__12,
-                           Att_12hr_Br = X__13,
-                           Perf_12hr = X__14,
+           clean_data <- clean_data %>%
+             dplyr::rename(Week_End = WeekEndingDate,
+                           Board_Code = HBT,
+                           Board_Name = HBName,
+                           Prov_Code = TreatmentLocation,
+                           Prov_Name = TreatmentLocationName,
+                           Dept_Type = DepartmentType,
+                           Att_All = NumberOfAttendancesEpisode,
+                           Att_4hr_No_Br = NumberWithin4HoursEpisode,
+                           Att_4hr_Br = NumberOver4HoursEpisode,
+                           Perf_4hr = PercentageWithin4HoursEpisode,
+                           Att_8hr_Br = NumberOver8HoursEpisode,
+                           Perf_8hr = PercentageOver8HoursEpisode,
+                           Att_12hr_Br = NumberOver12HoursEpisode,
+                           Perf_12hr = PercentageOver12HoursEpisode,
                            SourceFile = SourceFile,
                            hashSourceFileContents = hashSourceFileContents
                            ) %>%
@@ -502,12 +523,83 @@ delete_extra_columns <- function(df, country = "England") {
                    )) == 1) {df <- df %>% dplyr::select(-c(X__18,X__19))}
            df <- df %>% dplyr::select(-c(X__8,X__9,X__10,X__11))
 
+           colnames(df) <- c(paste('X__',c(1:(ncol(df)-2)),sep=''),"SourceFile","hashSourceFileContents")
          },
          "Scotland" = {
-           #df <- dplyr::select(df, -c(data_source))
+           df <- df %>%
+             dplyr::select(-Country)
          },
          stop("country should be either England or Scotland")
   )
-  colnames(df) <- c(paste('X__',c(1:(ncol(df)-2)),sep=''),"SourceFile","hashSourceFileContents")
-  df
+
+  return(df)
 }
+
+
+join_site_info_scotland <- function(rawDataList,
+                                    directory) {
+
+  sites_data <- get_phs_data(url_string = "https://www.opendata.nhs.scot/dataset/nhs-scotland-accident-emergency-sites",
+                             file_identifier = "ae_hospital_site_list",
+                             directory = directory)
+
+  board_data <-  get_phs_data(url_string = "https://www.opendata.nhs.scot/dataset/geography-codes-and-labels",
+                              file_identifier = "hb14_hb19",
+                              directory = directory)
+
+  dataList <- lapply(rawDataList,
+                     function(x) {
+                       x %>%
+                         dplyr::left_join(sites_data %>%
+                                            dplyr::select(TreatmentLocationCode,
+                                                          TreatmentLocationName),
+                                          by = c("TreatmentLocation" = "TreatmentLocationCode")) %>%
+                         dplyr::left_join(board_data %>%
+                                            dplyr::select(HB,
+                                                          HBName),
+                                          by = c("HBT" = "HB"))
+                     })
+
+
+  return(dataList)
+
+}
+
+get_phs_data <- function(url_string,
+                         file_identifier,
+                         directory) {
+
+  con <- url(url_string,
+             "r")
+
+  html_lines <- readLines(con)
+
+  close(con)
+
+  data_url_line_no <- grep(file_identifier,
+                           html_lines)
+
+  data_lines <- html_lines[data_url_line_no]
+
+  urls <- paste0(
+    substr(data_lines,
+           regexpr("https://",
+                   data_lines),
+           regexpr(".csv",
+                   data_lines) + 3))
+  target_url <- urls[1]
+
+  httr::GET(target_url,
+            httr::write_disk(file.path("data-raw",
+                                       paste0(file_identifier,
+                                              ".csv")),
+                             overwrite = TRUE))
+
+  df <- read.csv(file.path("data-raw",
+                           paste0(file_identifier,
+                                  ".csv")),
+                 stringsAsFactors = FALSE)
+
+  return(df)
+}
+
