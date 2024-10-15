@@ -419,7 +419,8 @@ clean_AE_data <- function(raw_data, country = "England") {
            clean_data <- clean_data %>%
              dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), list(as.numeric)) %>%
              dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), list(as.numeric)) %>%
-             dplyr::mutate(Week_End = as.Date(Week_End, format = "%Y-%m-%d")) %>%
+             dplyr::mutate(Week_End = as.Date(as.character(Week_End),
+                                              format = "%Y%m%d")) %>%
              dplyr::mutate(Board_Code = as.character(Board_Code)) %>%
              dplyr::mutate(Board_Name = as.character(Board_Name)) %>%
              dplyr::mutate(Prov_Name = as.character(Prov_Name)) %>%
