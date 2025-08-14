@@ -88,6 +88,7 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
              url_22_23 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2022-23/"
              url_23_24 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2023-24/"
              url_24_25 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2024-25/"
+             url_25_26 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2025-26/"
              url_list <- list(url_15_16,
                               url_16_17,
                               url_17_18,
@@ -97,7 +98,8 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
                               url_21_22,
                               url_22_23,
                               url_23_24,
-                              url_24_25
+                              url_24_25,
+                              url_25_26
                               )
            },
            "Scotland" = {
@@ -276,7 +278,7 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
     if(country == "England"){
 
       #2023 file so far have the data in the second tab
-      if(grepl("2024", x) | grepl("2023", x) | grepl("2022", x)){
+      if(grepl("2025", x) | grepl("2024", x) | grepl("2023", x) | grepl("2022", x)){
         df <- readxl::read_excel(x, sheet = "Provider Level Data", col_names = FALSE,
                                  .name_repair = ~ paste0("X__", seq_along(.x)))
       }else{
