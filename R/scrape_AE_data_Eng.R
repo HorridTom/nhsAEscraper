@@ -427,6 +427,10 @@ clean_AE_data <- function(raw_data, country = "England") {
              dplyr::mutate(Prov_Code = as.character(Prov_Code)) %>%
              dplyr::mutate(Prov_Name = ifelse(startsWith(Prov_Name, "NHS"), sub("NHS","Board:",Prov_Name), Prov_Name)) %>%
              dplyr::mutate(Prov_Name = ifelse(endsWith(Board_Name, "Scotland"), "Whole of Scotland", Prov_Name))
+
+           clean_data <- clean_data %>%
+             dplyr::filter(AttendanceCategory == "All") %>%
+             dplyr::select(-AttendanceCategory)
          },
          stop("country should be either England or Scotland")
   )
