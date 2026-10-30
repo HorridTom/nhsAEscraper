@@ -9,6 +9,7 @@ data-raw/
 data-out/
 tests/testthat/test-data/*
 !tests/testthat/test-data/neat-colnames.rda
+!tests/testthat/test-data/ae-page-example.html
 
 # Packrat src
 packrat/src
