@@ -42,8 +42,13 @@ getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sit
                         country = country)
 
   if(country == "England"){
-    if(!all(unlist(lapply(rawDataList, check_format)))) {
-      stop('There is a problem with the format of the data in one or more of the files')
+    format_ok <- unlist(lapply(rawDataList, check_format))
+    if(!all(format_ok)) {
+      failed_files <- vapply(rawDataList[!format_ok],
+                             function(df) unique(df$SourceFile)[1],
+                             character(1))
+      stop('There is a problem with the format of the data in these files:\n',
+           paste(failed_files, collapse = '\n'))
     }
   }
 
@@ -89,6 +94,7 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
              url_23_24 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2023-24/"
              url_24_25 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2024-25/"
              url_25_26 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2025-26/"
+             url_26_27 <- "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2026-27/"
              url_list <- list(url_15_16,
                               url_16_17,
                               url_17_18,
@@ -99,7 +105,8 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
                               url_22_23,
                               url_23_24,
                               url_24_25,
-                              url_25_26
+                              url_25_26,
+                              url_26_27
                               )
            },
            "Scotland" = {
@@ -277,8 +284,10 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
     cat(file=stderr(), "Loading: ", x, "\n")
     if(country == "England"){
 
-      #2023 file so far have the data in the second tab
-      if(grepl("2025", x) | grepl("2024", x) | grepl("2023", x) | grepl("2022", x)){
+      # Files from 2022 onwards hold several sheets, with the provider data in
+      # the sheet "Provider Level Data". Earlier files hold the provider data
+      # in their first sheet.
+      if("Provider Level Data" %in% readxl::excel_sheets(x)){
         df <- readxl::read_excel(x, sheet = "Provider Level Data", col_names = FALSE,
                                  .name_repair = ~ paste0("X__", seq_along(.x)))
       }else{
