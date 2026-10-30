@@ -1,6 +1,8 @@
 library(nhsAEscraper)
 context("Convert imported data to a standard format")
 
+skip_if_no_test_data()
+
 rawDataList <- load_AE_files(directory = 'test-data/')
 rawDataList_conv <- lapply(rawDataList, delete_extra_columns)
 

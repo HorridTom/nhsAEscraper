@@ -117,7 +117,20 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
            stop("country should be either England or Scotland")
     )
   }
-  unlist(lapply(url_list,function(x) getAEdata_page_urls_monthly(x, country = country)))
+  urls <- unlist(lapply(url_list,function(x) getAEdata_page_urls_monthly(x, country = country)))
+
+  # The revised September and October 2019 files on the 2019-20 page are named
+  # "Monthly-<month>-2019-revised-...", without "AE", so the search in
+  # getAEdata_page_urls_monthly() does not find them. Add them once, when the
+  # 2019-20 page is one of the pages scraped.
+  if(country == "England" & any(grepl("2019-20", unlist(url_list), fixed = TRUE))) {
+    urls <- unique(c(urls,
+                     "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/Monthly-October-2019-revised-210720-qm5hG.xls",
+                     "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/Monthly-September-2019-revised-210720-L48uy.xls"
+                     ))
+  }
+
+  urls
 }
 
 
@@ -171,10 +184,7 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
            #to remove duplicates of files ending in xlsx
            urls <- urls[!urls_xlsx_selection]
 
-           urls <- c(urls, urls_xlsx,
-                     "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/Monthly-October-2019-revised-210720-qm5hG.xls",
-                     "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/Monthly-September-2019-revised-210720-L48uy.xls"
-                     )
+           urls <- c(urls, urls_xlsx)
 
            urls_eng <- urls
            assign("urls_eng", urls_eng, envir = .GlobalEnv)

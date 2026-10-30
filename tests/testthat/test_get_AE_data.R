@@ -1,6 +1,8 @@
 library(nhsAEscraper)
 context("Retrieve and assemble the A&E data")
 
+skip_if_no_test_data()
+
 
 test_that("",{
   AE_data <- getAE_data(update_data = FALSE, directory = 'test-data/')
