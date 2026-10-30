@@ -40,9 +40,13 @@ test_that("Data file processed correctly into rectangualar data frames",{
 
   load('test-data/neat-colnames.rda')
 
-  expect_equal(colnames(neatDataList[[1]]), neat_colnames,
+  # The data columns in neat_colnames, followed by the two columns that record
+  # the source file: its path and the md5 hash of its contents.
+  expected_colnames <- c(neat_colnames, "SourceFile", "hashSourceFileContents")
+
+  expect_equal(colnames(neatDataList[[1]]), expected_colnames,
                info = 'August 2015 column names correct post processing')
-  expect_equal(colnames(neatDataList[[2]]), neat_colnames,
+  expect_equal(colnames(neatDataList[[2]]), expected_colnames,
                info = 'January 2018 column names correct post processing')
   expect_is(neatDataList[[1]][[2]], 'character')
   expect_is(neatDataList[[2]][[2]], 'character')
