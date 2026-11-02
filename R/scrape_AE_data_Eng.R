@@ -34,7 +34,8 @@ getAE_data <- function(update_data = TRUE, directory = file.path('data-raw','sit
 
   if(country == "Scotland") {
     rawDataList <- join_site_info_scotland(rawDataList = rawDataList,
-                                           directory = directory)
+                                           directory = directory,
+                                           update_data = update_data)
   }
 
   rawDataList <- lapply(rawDataList,
@@ -308,7 +309,7 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
 
       df <- df %>%
         dplyr::mutate(SourceFile = x) %>%
-        dplyr::mutate(hashSourceFileContents = openssl::md5(x))
+        dplyr::mutate(hashSourceFileContents = hash_file_contents(x))
     } else {
       # Scotland
       # Need to switch this for readr::read_csv(x) and refactor below
@@ -317,20 +318,20 @@ load_AE_files <- function(directory = file.path('data-raw','sitreps'),
 
       df <- df %>%
         dplyr::mutate(SourceFile = x) %>%
-        dplyr::mutate(hashSourceFileContents = openssl::md5(x))
+        dplyr::mutate(hashSourceFileContents = hash_file_contents(x))
     }
 
     cat(file=stderr(), "Success loaded: ", x, "\n")
     if(use_filename_date & country == "England") {
 
-      # Temporary fix for misnamed August 2019 file
-      if(!stringr::str_detect(stringr::str_match(x, '/(([0-9A-Za-z]|-)*)-AE-by-provider')[,2], "\\d")) {
-        dt_chr <- "August-2019"
-      }
-
       dt_chr <- stringr::str_replace(
         stringr::str_match(x, '/(([0-9A-Za-z]|-)*)-AE-by-provider')[,2], '-', ' '
       )
+
+      # Temporary fix for misnamed August 2019 file
+      if(is.na(dt_chr) || !stringr::str_detect(dt_chr, "\\d")) {
+        dt_chr <- "August 2019"
+      }
       df <- df %>% dplyr::mutate(X__2 = ifelse(X__1 == 'Period:', dt_chr, X__2))
     }
     df
@@ -395,19 +396,18 @@ clean_AE_data <- function(raw_data, country = "England") {
                            hashSourceFileContents = hashSourceFileContents)
 
 
-           # Explicitly replace Excel 'N/A' with NA_character_
-           clean_data <- clean_data %>%
-             dplyr::mutate(Perf_Typ1 = dplyr::case_when(Perf_Typ1 == 'N/A' ~ NA_character_,
-                                                        Perf_Typ1 == '-' ~ NA_character_,
-                                                        Perf_Typ1 != 'N/A' ~ Perf_Typ1))
-           clean_data <- clean_data %>%
-             dplyr::mutate(Perf_All = dplyr::case_when(Perf_Typ1 == 'N/A' ~ NA_character_,
-                                                       Perf_Typ1 == '-' ~ NA_character_,
-                                                       Perf_Typ1 != 'N/A' ~ Perf_Typ1))
-
            clean_data <- clean_data %>% dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Att_")), as.numeric) %>%
-             dplyr::mutate_at(dplyr::vars(dplyr::starts_with("Perf_")), as.numeric) %>%
              dplyr::mutate_at(dplyr::vars(dplyr::starts_with("E_Adm_")), as.numeric)
+
+           # The percentage columns in the source files are not in a consistent
+           # position: in later files the column read into Perf_Typ1 holds the
+           # all-types percentage. Calculate both from the counts instead, so
+           # that they always mean the same thing.
+           clean_data <- clean_data %>%
+             dplyr::mutate(Perf_Typ1 = (Att_Typ1 - Att_Typ1_Br) / Att_Typ1,
+                           Perf_All = (Att_All - Att_All_Br) / Att_All) %>%
+             dplyr::mutate(dplyr::across(c(Perf_Typ1, Perf_All),
+                                         ~ ifelse(is.finite(.x), .x, NA_real_)))
 
            clean_data <- clean_data %>% tibble::add_column(Month_Start = data_date, .after = 3)
 
@@ -563,15 +563,18 @@ delete_extra_columns <- function(df, country = "England") {
 
 
 join_site_info_scotland <- function(rawDataList,
-                                    directory) {
+                                    directory,
+                                    update_data = TRUE) {
 
   sites_data <- get_phs_data(url_string = "https://www.opendata.nhs.scot/dataset/nhs-scotland-accident-emergency-sites",
                              file_identifier = "ae_hospital_site_list",
-                             directory = directory)
+                             directory = directory,
+                             update_data = update_data)
 
   board_data <-  get_phs_data(url_string = "https://www.opendata.nhs.scot/dataset/geography-codes-and-labels",
                               file_identifier = "hb14_hb19",
-                              directory = directory)
+                              directory = directory,
+                              update_data = update_data)
 
   dataList <- lapply(rawDataList,
                      function(x) {
@@ -593,39 +596,38 @@ join_site_info_scotland <- function(rawDataList,
 
 get_phs_data <- function(url_string,
                          file_identifier,
-                         directory) {
+                         directory,
+                         update_data = TRUE) {
 
-  con <- url(url_string,
-             "r")
+  file_path <- file.path(directory, paste0(file_identifier, ".csv"))
 
-  html_lines <- readLines(con)
+  if(update_data) {
+    con <- url(url_string, "r")
+    html_lines <- readLines(con)
+    close(con)
 
-  close(con)
+    data_lines <- html_lines[grep(file_identifier, html_lines)]
 
-  data_url_line_no <- grep(file_identifier,
-                           html_lines)
+    urls <- substr(data_lines,
+                   regexpr("https://", data_lines),
+                   regexpr(".csv", data_lines) + 3)
+    target_url <- urls[1]
 
-  data_lines <- html_lines[data_url_line_no]
+    httr::GET(target_url,
+              httr::write_disk(file_path, overwrite = TRUE))
+  } else if(!file.exists(file_path)) {
+    stop("update_data is FALSE but ", file_path, " does not exist. ",
+         "Run getAE_data() with update_data = TRUE first.")
+  }
 
-  urls <- paste0(
-    substr(data_lines,
-           regexpr("https://",
-                   data_lines),
-           regexpr(".csv",
-                   data_lines) + 3))
-  target_url <- urls[1]
-
-  httr::GET(target_url,
-            httr::write_disk(file.path("data-raw",
-                                       paste0(file_identifier,
-                                              ".csv")),
-                             overwrite = TRUE))
-
-  df <- read.csv(file.path("data-raw",
-                           paste0(file_identifier,
-                                  ".csv")),
-                 stringsAsFactors = FALSE)
-
-  return(df)
+  utils::read.csv(file_path, stringsAsFactors = FALSE)
 }
 
+
+# md5 hash of a file's contents, as a string, so that a file that is revised
+# but keeps its name is recognised as new.
+hash_file_contents <- function(path) {
+  con <- file(path, open = "rb")
+  on.exit(close(con))
+  paste(as.character(unclass(openssl::md5(con))), collapse = "")
+}
