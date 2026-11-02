@@ -53,3 +53,20 @@ test_that("the live pages give file urls, with the revised 2019 files once",{
   expect_equal(anyDuplicated(urls_ae), 0)
   expect_equal(sum(grepl("Monthly-(September|October)-2019-revised", urls_ae)), 2)
 })
+
+test_that("the WordPress page slug is the last part of the page url",{
+  expect_equal(nhsAEscraper:::wp_page_slug(paste0(
+    "https://www.england.nhs.uk/statistics/statistical-work-areas/",
+    "ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2025-26/")),
+    "ae-attendances-and-emergency-admissions-2025-26")
+  expect_equal(nhsAEscraper:::wp_page_slug("https://example.org/a/b"), "b")
+})
+
+test_that("the live 2016-17 page gives its 12 monthly files through the WordPress API",{
+  skip_if_offline()
+  url_16_17 <- paste0("https://www.england.nhs.uk/statistics/statistical-work-areas/",
+                      "ae-waiting-times-and-activity/statistical-work-areasae-waiting",
+                      "-times-and-activityae-attendances-and-emergency-admissions-2016-17/")
+  html_lines <- nhsAEscraper:::read_page_via_wp_api(url_16_17)
+  expect_true(sum(grepl("AE-by-provider", html_lines)) >= 12)
+})
