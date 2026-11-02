@@ -155,16 +155,11 @@ getAEdata_urls_monthly <- function(url_list = NULL, country = "England") {
 #' }
 getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
-  con <- url(index_url, "r")
-
   switch(country,
          "England" = {
 
            #Get the html from the index website
-           html_lines <- readLines(con)
-
-           #Close connection
-           close(con)
+           html_lines <- read_index_page(index_url)
 
            #Look for lines that contain the signature part of the url and the signature text
            data_url_lines <- grep("^(?=.*xls)((?!Quarter).)*$",html_lines, perl=TRUE)
@@ -187,6 +182,10 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
            urls <- c(urls, urls_xlsx)
 
+           if(length(urls) == 0) {
+             warning("No A&E data files found on ", index_url)
+           }
+
            urls_eng <- urls
            assign("urls_eng", urls_eng, envir = .GlobalEnv)
 
@@ -194,8 +193,8 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
          "Scotland" = {
 
+           con <- url(index_url, "r")
            html_lines <- readLines(con)
-
            close(con)
 
            hosp_data_url_lines <- grep("weekly_ae_activity",html_lines)
@@ -217,6 +216,49 @@ getAEdata_page_urls_monthly <- function(index_url, country = "England") {
 
    return(urls)
 
+}
+
+
+# Read the html of an index page as a vector of lines.
+#
+# NHS England's website access through WordPress API or directly if that fails
+read_index_page <- function(index_url) {
+  if(grepl("^https?://www\\.england\\.nhs\\.uk/statistics/", index_url)) {
+    html_lines <- tryCatch(read_page_via_wp_api(index_url),
+                           error = function(e) {
+                             message("Could not read ", index_url,
+                                     " through the WordPress API (",
+                                     conditionMessage(e),
+                                     "); reading the page directly.")
+                             NULL
+                           })
+    if(length(html_lines) > 0) return(html_lines)
+  }
+
+  con <- url(index_url, "r")
+  on.exit(close(con))
+  readLines(con, warn = FALSE)
+}
+
+
+# The WordPress page slug is the last part of the page's url.
+wp_page_slug <- function(index_url) {
+  basename(sub("/+$", "", index_url))
+}
+
+
+read_page_via_wp_api <- function(index_url) {
+  api_url <- "https://www.england.nhs.uk/statistics/wp-json/wp/v2/pages"
+  res <- httr::GET(api_url,
+                   query = list(slug = wp_page_slug(index_url),
+                                `_fields` = "content"))
+  httr::stop_for_status(res)
+  pages <- httr::content(res, as = "parsed", type = "application/json",
+                         encoding = "UTF-8")
+  if(length(pages) == 0) {
+    stop("no page with slug ", wp_page_slug(index_url))
+  }
+  strsplit(pages[[1]]$content$rendered, "\n")[[1]]
 }
 
 
